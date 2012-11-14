@@ -31,7 +31,7 @@ class DBConnection(object):
         """
         Create engine, associate metadata with the engine, then create a SessionFactory for use through the backend.
         """
-        self.engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, username, password, DBHOST, DBNAME), convert_unicode=True)
+        self.engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, username, password, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
         Base.metadata.bind = self.engine
         self.SessionFactory = sessionmaker(bind=self.engine)
         model_old_schema.current_user = username
