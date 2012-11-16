@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 """
 
 This is a small application that provides a login page for curators to view/edit the
@@ -56,9 +58,10 @@ def link_ref(pmid, parameters):
     if not result:
         return "Problem moving temporary reference for pmid = " + pmid + " to the reference table."
     
+    
     result = conn.associate(pmid, name_to_feature, parsed_params.get_tasks())    
-    if result:
-        return "Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + parameters
+    if result is not None:
+        return "Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + result
     else:
         return "An error occurred when linking the reference for pmid = " + pmid + " to the info you picked/entered: " + parameters
 

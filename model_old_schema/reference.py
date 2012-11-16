@@ -8,7 +8,6 @@ Reference module of the database schema.
 '''
 from lit_review.parse import MedlineJournal
 from model_old_schema import Base
-from model_old_schema.admin import RefCuration
 from model_old_schema.config import SCHEMA
 from model_old_schema.feature import Feature
 from sqlalchemy.ext.associationproxy import association_proxy
@@ -37,8 +36,8 @@ class Reference(Base):
     page = Column('page', String)
     volume = Column('volume', String)
     title = Column('title', String)
-    journal_id = Column('journal_no', String, ForeignKey('bud.journal.journal_no'))
-    book_id = Column('book_no', String, ForeignKey('bud.book.book_no'))
+    journal_id = Column('journal_no', Integer, ForeignKey('bud.journal.journal_no'))
+    book_id = Column('book_no', Integer, ForeignKey('bud.book.book_no'))
     doi = Column('doi', String)
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
@@ -69,7 +68,7 @@ class Reference(Base):
     litGuideTopics = association_proxy('litGuides', 'topic',
                                     creator=lambda topic: LitGuide(topic=topic, reference_id = id))
     
-    curations = relationship(RefCuration, viewonly=True)
+    curations = relationship('RefCuration', viewonly=True, backref='reference')
 
     
     def __init__(self, pubmed_id):
@@ -257,5 +256,36 @@ class LitGuide(Base):
 
     def __repr__(self):
         data = self.topic, self.reference_id, self.features
-        return 'LitGuide(topic=%s, reference_id=%s, features=%s)' % data   
+        return 'LitGuide(topic=%s, reference_id=%s, features=%s)' % data  
+    
+class RefCuration(Base):
+    __tablename__ = 'ref_curation'
+    __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
+
+    id = Column('ref_curation_no', Integer, primary_key = True)
+    reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'))
+    task = Column('curation_task', String)
+    feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'))
+    comment = Column('curator_comment', String)
+    created_by = Column('created_by', String)
+    date_created = Column('date_created', Date)
+    
+    #Relationships
+    feature = relationship('Feature', uselist=False)
+
+    def __init__(self, reference_id, task, feature_id):
+        self.reference_id = reference_id
+        self.task = task
+        self.feature_id = feature_id
+        self.created_by = model_old_schema.current_user
+        self.date_created = datetime.datetime.now()
+
+    def __repr__(self):
+        if self.feature_id is not None:
+            print self.feature_id
+            data = self.task, self.feature, self.comment
+            return 'RefCuration(task=%s, feature=%s, comment=%s)' % data
+        else:
+            data = self.task, self.comment
+            return 'RefCuration(task=%s, feature=None, comment=%s)' % data 
     

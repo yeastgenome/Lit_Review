@@ -306,8 +306,7 @@ class DBConnection(object):
         Associate a Reference with LitGuide entries.
         """
         try:
-            from model_old_schema.admin import RefCuration
-            from model_old_schema.reference import LitGuide
+            from model_old_schema.reference import LitGuide, RefCuration
             session = self.SessionFactory()
                         
             reference = self.get_ref_by_pmid(pubmed_id, session)
@@ -321,7 +320,7 @@ class DBConnection(object):
                     features = set()
                     print name_to_feature
                     for gene_name in task.gene_names:
-                        features.add(name_to_feature[gene_name])
+                        features.add(name_to_feature[gene_name.upper()])
                     
                     ## Create RefCuration objects and add them to the Reference.
                     for feature in features:
@@ -358,12 +357,19 @@ class DBConnection(object):
                     if task.type == TaskType.HTP_PHENOTYPE_DATA or task.type == TaskType.REVIEWS:
                         lit_guide = get_or_create(session, LitGuide, topic=task.topic, reference_id=reference.id)
                         reference.litGuides.append(lit_guide)
+                
+                message = "RefCurations: "
+                for curation in reference.curations:
+                    message = message + str(curation) + ", "
+                message = message + "<p> LitGuides: "
+                for lit_guide in reference.litGuides:
+                    message = message + str(lit_guide) + ", "
             session.commit()
-            return True
+            return message
         except Exception:
             traceback.print_exc(file=sys.stdout)
             session.rollback()
-            return False
+            return None
         finally:
             session.close()
             
