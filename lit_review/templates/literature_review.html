@@ -73,7 +73,7 @@
       
         {% if loop.index <= 10 %}   <!-- just for testing purpose -->
 
-          {% set pmid = row.pubmed_id %}
+          {% set pmid = row.pubmed %}
 	  
           <div id='{{ pmid}}'>   <!-- start pubmed section -->
        
@@ -109,33 +109,33 @@
 	     </li>
 
 	     <li>
-	     <input type="checkbox" id="ck_{{ pmid }}_3" name="htp_pheno" value="HTP phenotype"> HTP phenotype data?
+	     <input type="checkbox" id="ck_{{ pmid }}_3" name="htp_pheno" value="HTP phenotype"> HTP phenotype data? (adds the 'Omics' topic) 
 	     Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_3"></textarea>
 	     </li>
 
 	     <li>
-             <input type="checkbox" id="ck_{{ pmid }}_4" name="non_pheno_htp" value="Non-phenotype HTP"> Other HTP data? (these tags add the 'Omics' topic)
+             <input type="checkbox" id="ck_{{ pmid }}_4" name="non_pheno_htp" value="Non-phenotype HTP"> Other HTP data? (adds the 'Omics' topic)
 	     Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_4"></textarea>
 	     </li>
 
 	     <li><input type="checkbox" id="ck_{{ pmid }}_5" name="go" value="GO information"> GO information? 
-	     Link to these genes and add paper to Focused set: <textarea class="span2" rows="1" id="gene_{{ pmid }}_5"></textarea> Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_5"></textarea>
+	     Link to these genes and add paper to Primary Literature: <textarea class="span2" rows="1" id="gene_{{ pmid }}_5"></textarea> Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_5"></textarea>
 	     </li>
 
 	     <li><input type="checkbox" id="ck_{{ pmid }}_6" name="pheno" value="Classical phenotype information"> Classical phenotype information? 
-	     Link to these genes and add paper to Focused set: <textarea class="span2" rows="1" id="gene_{{ pmid }}_6"></textarea> Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_6"></textarea>
+	     Link to these genes and add paper to Primary Literature: <textarea class="span2" rows="1" id="gene_{{ pmid }}_6"></textarea> Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_6"></textarea>
 	     </li>
 
 	     <li><input type="checkbox" id="ck_{{ pmid }}_7" name="headline" value="Headline information"> Headline information? 
-	     Link to these genes and add paper to Focused set: <textarea class="span2" rows="1" id="gene_{{ pmid }}_7"></textarea> Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_7"></textarea>
+	     Link to these genes and add paper to Primary Literature: <textarea class="span2" rows="1" id="gene_{{ pmid }}_7"></textarea> Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_7"></textarea>
 	     </li>
 
 	     <li><input type="checkbox" id="ck_{{ pmid }}_8" name="review" value="Reviews"> Reviews? 
-	     Optionally link to these genes and add paper to Focused set: <textarea class="span2" rows="1" id="gene_{{ pmid }}_8"></textarea> Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_8"></textarea>
+	     Optionally link to these genes: <textarea class="span2" rows="1" id="gene_{{ pmid }}_8"></textarea> Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_8"></textarea>
 	     </li>	     
 
 	     <li><input type="checkbox" id="ck_{{ pmid }}_9" name="gene_link" value="Add to database"> Add to database? 
-	     Optionally link to these genes and add paper to Non-focused set: <textarea class="span2" rows="1" id="gene_{{ pmid }}_9"></textarea> Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_9"></textarea>
+	     Optionally link to these genes and add paper to Additional Literature: <textarea class="span2" rows="1" id="gene_{{ pmid }}_9"></textarea> Comment: <textarea class="span2" rows="1" id="comment_{{ pmid }}_9"></textarea>
 	     </li>	  
    
 	  </ul>

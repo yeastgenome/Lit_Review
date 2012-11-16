@@ -1,5 +1,5 @@
 
-var root_url = "http://0.0.0.0:5000/";  //"http://sgd-dev-2.stanford.edu:8080/";
+var root_url = "http://sgd-dev-2.stanford.edu:5000/";
 var ref_url = root_url + "reference/";
 var delete_ref_url = ref_url + "delete/";
 var link_ref_url = ref_url + "link/";
@@ -21,6 +21,7 @@ function link_paper(pmid, ck_index) {
 
 	var url = link_ref_url + pmid;
 	var parameter = '';
+	var gene_hash = {};
 
 	for (var i = 1; i <= ck_index; i++) {
 
@@ -49,10 +50,39 @@ function link_paper(pmid, ck_index) {
 		var ck_name = $("#" + ck_id).val();
 		if ($("#" + ck_id).is(":checked")) {
 		        var ckNameMatch = ck_name.match(/(GO|Classical phenotype|Headline)/);
-			if (ckNameMatch && !genes) {
-				alert("Please enter gene names for " + ck_name);
-				return;
+			if (ckNameMatch)  {
+				if (genes) {
+					var geneArray = genes.split(' ');
+					$.each(geneArray, function(index, gene) {
+						gene_hash[gene] = 1;
+					});
+				}
+				else {
+					alert("Please enter gene names for " + ck_name);
+					return;
+				}
 			}
+			else if (genes) {
+				var geneArray2 = genes.split(' ');
+				var found_same_gene = 0;
+                                $.each(geneArray2, function(index, gene) {
+					if (gene in gene_hash) {
+						alert("You have used the same gene name (" + gene + ") for two different literature topics");
+						found_same_gene = 1;
+
+						return;
+						
+					}
+
+                                     	gene_hash[gene] = 1;
+                                });
+
+				if (found_same_gene == 1) {
+					return;
+				}
+
+			}
+			
 			if (parameter != '') {
 				parameter += ', ';
 			}
