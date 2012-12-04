@@ -1,5 +1,6 @@
 
 var root_url = "http://sgd-dev-2.stanford.edu:5000/";
+//var root_url = "http://0.0.0.0:5000/"
 var ref_url = root_url + "reference/";
 var delete_ref_url = ref_url + "delete/";
 var link_ref_url = ref_url + "link/";

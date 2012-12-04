@@ -4,12 +4,6 @@ HOST = '0.0.0.0'
 PORT = 5000
 SECRET_KEY = "SECRET_KEY_HERE"
 
-
-DBTYPE = 'oracle'
-DBHOST = 'SERVER:PORT'
-DBNAME = 'DBNAME_HERE'
-SCHEMA = 'SCHEMA_HERE'
-
 class User(UserMixin):
     def __init__(self, name, user_id, active=True):
         self.name = name

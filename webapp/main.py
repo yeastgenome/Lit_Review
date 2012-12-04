@@ -7,17 +7,20 @@ information in Oracle database. This application is using Flask-Login package (c
 by Matthew Frazier, MIT) for handling the login sessions and everything. 
 
 """
-from config import SECRET_KEY, HOST, PORT
 from flask import Flask, request, render_template, redirect, url_for, flash
 from flask_login import login_required, fresh_login_required
-from lit_review.parse import ParseParameters
-from lit_review_login import LoginResult, LogoutResult, \
+from modelOldSchema.model import Model
+from queries.associate import associate
+from queries.misc import get_reftemps, validate_genes
+from queries.move_ref import move_reftemp_to_refbad, move_reftemp_to_ref
+from queries.parse import ParseParameters
+from webapp.config import SECRET_KEY, HOST, PORT
+from webapp.login_handler import LoginResult, LogoutResult, \
     confirm_login_lit_review_user, logout_lit_review_user, login_lit_review_user, \
     setup_app
-from model_old_schema.db_connection import DBConnection
 
 app = Flask(__name__)
-conn = DBConnection()
+conn = Model()
 setup_app(app)
 
 @app.route("/")
@@ -27,7 +30,7 @@ def index():
 @app.route("/reference")
 @fresh_login_required
 def reference():
-    refs = conn.get_reftemps()
+    refs = conn.execute(get_reftemps())
     num_of_refs = len(refs)
     return render_template('literature_review.html',
                            ref_list=refs,
@@ -36,7 +39,7 @@ def reference():
 @app.route("/reference/delete/<pmid>")
 @fresh_login_required
 def discard_ref(pmid):
-    moved = conn.move_reftemp_to_refbad(pmid)
+    moved = conn.execute(move_reftemp_to_refbad(pmid))
     if moved:
         return "Reference for pmid=" + pmid + " has been removed from the database!"
     else:
@@ -47,19 +50,19 @@ def discard_ref(pmid):
 def link_ref(pmid, parameters):
     parsed_params = ParseParameters(parameters)
     gene_names = parsed_params.get_all_gene_names()
-    name_to_feature = conn.validate_genes(gene_names)
+    name_to_feature = conn.execute(validate_genes(gene_names))
     
     #If we don't get back as many features as we have gene names, find the bad ones and show them to the user.
     if len(name_to_feature) < len(gene_names):
         bad_gene_names = set(gene_names) - set(name_to_feature.keys())
         return "Not found Gene name(s): " + ', '.join(bad_gene_names)
     
-    result = conn.move_reftemp_to_ref(pmid)
+    result = conn.execute(move_reftemp_to_ref(pmid))
     if not result:
         return "Problem moving temporary reference for pmid = " + pmid + " to the reference table."
     
     
-    result = conn.associate(pmid, name_to_feature, parsed_params.get_tasks())    
+    result = conn.execute(associate(pmid, name_to_feature, parsed_params.get_tasks()))
     if result is not None:
         return "Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + result
     else:

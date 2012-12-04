@@ -1,6 +1,17 @@
 from Bio import Entrez
 from Bio import Medline
 
+
+def get_medline_data(pubmed_id):
+    """
+    Grab information on this pubmed_id from ncbi using FetchMedline()
+    """
+    medline = FetchMedline(pubmed_id)
+    records = medline.get_records()
+    for rec in records:
+        record = rec
+    return Pubmed(record)
+    
 class FetchMedline():
 
     def __init__(self, pmid):

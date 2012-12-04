@@ -5,7 +5,7 @@ information in Oracle database. This application is using Flask-Login package (c
 by Matthew Frazier, MIT) for handling the login sessions and everything. 
 
 """
-from config import Anonymous, USER_NAMES, USERS
+from webapp.config import Anonymous, USER_NAMES, USERS
 from flask_login import LoginManager, login_user, logout_user, confirm_login
 
 login_manager = LoginManager()

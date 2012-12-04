@@ -6,13 +6,13 @@ Created on Oct 24, 2012
 These classes are populated using SQLAlchemy to connect to the BUD schema on Fasolt. These are the classes representing tables in the
 Feature module of the database schema.
 '''
-from model_old_schema import Base
-from model_old_schema.config import SCHEMA
-from model_old_schema.sequence import Sequence
-from model_old_schema.taxonomy import Taxonomy
+from modelOldSchema import Base
+from modelOldSchema.sequence import Sequence
+from modelOldSchema.taxonomy import Taxonomy
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Table, Column, ForeignKey
 from sqlalchemy.types import Integer, String
+from modelOldSchema.config import SCHEMA
 
 class Alias(Base):
     __tablename__ = 'alias'

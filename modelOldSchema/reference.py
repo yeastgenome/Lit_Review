@@ -6,17 +6,19 @@ Created on Nov 7, 2012
 These classes are populated using SQLAlchemy to connect to the BUD schema on Fasolt. These are the classes representing tables in the
 Reference module of the database schema.
 '''
-from lit_review.parse import MedlineJournal
-from model_old_schema import Base
-from model_old_schema.config import SCHEMA
-from model_old_schema.feature import Feature
+from modelOldSchema import Base
+from modelOldSchema.config import SCHEMA
+from modelOldSchema.feature import Feature
+from modelOldSchema.model import get_or_create
+from queries.parse import MedlineJournal
+from queries.pubmed import get_medline_data
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection
 from sqlalchemy.schema import Column, ForeignKey, Table
 from sqlalchemy.types import Integer, String, Date
 import datetime
-import model_old_schema
+import modelOldSchema
        
 class Reference(Base):
     __tablename__ = 'reference'
@@ -48,7 +50,7 @@ class Reference(Base):
     
     abs = relationship("Abstract", cascade='all,delete', uselist=False, lazy='subquery')
     abstract = association_proxy('abs', 'text',
-                                 creator=lambda text: Abstract(text=text, reference_id = id))
+                                 creator=lambda text: Abstract(text=text, reference_id=id))
     
     features = relationship(Feature, secondary= Table('ref_curation', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
     
@@ -71,12 +73,40 @@ class Reference(Base):
     curations = relationship('RefCuration', viewonly=True, backref='reference')
 
     
-    def __init__(self, pubmed_id):
+    def __init__(self, pubmed_id, session):
         self.pubmed_id = pubmed_id
         self.pdf_status='N'
         self.source='PubMed script'
-        self.created_by = model_old_schema.current_user
+        self.created_by = modelOldSchema.current_user
         self.date_created = datetime.datetime.now()
+        
+        pubmed = get_medline_data(pubmed_id)
+            
+        #Set basic information for the reference.
+        self.status = pubmed.publish_status
+        self.citation = pubmed.citation
+        self.year = pubmed.year
+        self.pdf_status = pubmed.pdf_status
+        self.pages = pubmed.pages
+        self.volume = pubmed.volume
+        self.title = pubmed.title
+        self.issue = pubmed.issue
+                
+        #Add the journal.
+        self.journal = get_or_create(session, Journal, abbreviation=pubmed.journal_abbrev)
+                
+        #Add the abstract.
+        self.abstract = pubmed.abstract_txt
+                    
+        #Add the authors.
+        order = 0
+        for author_name in pubmed.authors:
+            order += 1
+            self.authors[order] = get_or_create(session, Author, name=author_name)
+                    
+        #Add the ref_type
+        self.refType = get_or_create(session, RefType, name=pubmed.pub_type)
+
 
     def __repr__(self):
         data = self.title, self.pubmed_id
@@ -111,13 +141,13 @@ class Journal(Base):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
-    def __init__(self, abbreviation):
+    def __init__(self, abbreviation, session=None):
         medlineJournal = MedlineJournal(abbreviation)
         self.abbreviation = abbreviation
         self.full_name = medlineJournal.journal_title
         self.issn = medlineJournal.issn
         self.essn = medlineJournal.essn
-        self.created_by = model_old_schema.current_user
+        self.created_by = modelOldSchema.current_user
         self.date_created = datetime.datetime.now()
 
     def __repr__(self):
@@ -136,12 +166,15 @@ class RefTemp(Base):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
 
-    def __init__(self, pubmed_id, citation, fulltext_url, abstract):
+    def __init__(self, pubmed_id, fulltext_url, session=None):    
         self.pubmed_id = pubmed_id
-        self.citation = citation
         self.fulltext_url = fulltext_url
-        self.abstract = abstract
-        self.created_by = model_old_schema.current_user
+
+        pubmed = get_medline_data(pubmed_id)
+        self.citation = pubmed.citation
+        self.abstract = pubmed.abstract_txt
+
+        self.created_by = modelOldSchema.current_user
         self.date_created = datetime.datetime.now()
 
     def __repr__(self):
@@ -157,10 +190,10 @@ class RefBad(Base):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
 
-    def __init__(self, pubmed_id, dbxref_id=None):
+    def __init__(self, pubmed_id, dbxref_id=None, session=None):
         self.pubmed_id = pubmed_id
         self.dbxref_id = dbxref_id
-        self.created_by = model_old_schema.current_user
+        self.created_by = modelOldSchema.current_user
         self.date_created = datetime.datetime.now()
 
     def __repr__(self):
@@ -176,9 +209,9 @@ class Author(Base):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
-    def __init__(self, name):
+    def __init__(self, name, session=None):
         self.name = name
-        self.created_by = model_old_schema.current_user
+        self.created_by = modelOldSchema.current_user
         self.date_created = datetime.datetime.now()
 
     def __repr__(self):
@@ -206,7 +239,7 @@ class Abstract(Base):
     reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'), primary_key = True)
     text = Column('abstract', String)
    
-    def __init__(self, text, reference_id):
+    def __init__(self, text, reference_id, session=None):
         self.text = text
         self.reference_id = reference_id
 
@@ -224,10 +257,10 @@ class RefType(Base):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
-    def __init__(self, name):
+    def __init__(self, name, session=None):
         self.name = name;
         self.source = 'NCBI'
-        self.created_by = model_old_schema.current_user
+        self.created_by = modelOldSchema.current_user
         self.date_created = datetime.datetime.now()
 
     def __repr__(self):
@@ -248,10 +281,10 @@ class LitGuide(Base):
     features = relationship("Feature", secondary= Table('litguide_feat', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True), lazy = 'subquery')
     feature_ids = association_proxy('features', 'id')
     
-    def __init__(self, topic, reference_id):
+    def __init__(self, topic, reference_id, session=None):
         self.topic = topic
         self.reference_id = reference_id
-        self.created_by = model_old_schema.current_user
+        self.created_by = modelOldSchema.current_user
         self.date_created = datetime.datetime.now()
 
     def __repr__(self):
@@ -273,16 +306,15 @@ class RefCuration(Base):
     #Relationships
     feature = relationship('Feature', uselist=False)
 
-    def __init__(self, reference_id, task, feature_id):
+    def __init__(self, reference_id, task, feature_id, session=None):
         self.reference_id = reference_id
         self.task = task
         self.feature_id = feature_id
-        self.created_by = model_old_schema.current_user
+        self.created_by = modelOldSchema.current_user
         self.date_created = datetime.datetime.now()
 
     def __repr__(self):
         if self.feature_id is not None:
-            print self.feature_id
             data = self.task, self.feature, self.comment
             return 'RefCuration(task=%s, feature=%s, comment=%s)' % data
         else:

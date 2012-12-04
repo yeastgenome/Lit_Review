@@ -73,7 +73,7 @@ class TaskType:
 # medline_journal
 ## need to find out if there is a web service we can call to get the journal full name
 ## and ISSN/ESSN for a journal abbreviation 
-medlineFile = 'J_Medline.txt'  # or need to put this file into a public place
+medlineFile = '/data/share/lit_review/J_Medline.txt'  # or need to put this file into a public place
 
 class MedlineJournal():
 
