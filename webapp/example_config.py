@@ -12,22 +12,20 @@ class User(UserMixin):
 
     def is_active(self):
         return self.active
+    
+    def __repr__(self):
+        data = self.id, self.name, self.active
+        return 'User(id=%s, name=%s, active=%s)' % data
 
 class Anonymous(AnonymousUser):
     name = u"Anonymous"
 
     
-USERS = {
-    1: User(u"maria", 1),
-    2: User(u"john", 2),
-    3: User(u"mary", 3),
-    4: User(u"julie", 4),
-    5: User(u"kpaskov", 5),
-    6: User(u"otto", 6),
-    7: User(u"guest", 7, False),
-}
+usernames = {'maria', 'julie', 'kpaskov', 'dwight', 'fisk', 'rama', 'stacia', 'nash', 'marek'}
+keys = range(1, len(usernames))
+values = map(lambda (i, username): User(username, i+1), enumerate(usernames))
+
+USERS = dict(zip(keys, values))
+USERS[len(usernames)+1] = User('guest', len(usernames)+1, False)
 
 USER_NAMES = dict((u.name, u) for u in USERS.itervalues())
-
-
-
