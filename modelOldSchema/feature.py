@@ -6,15 +6,15 @@ Created on Oct 24, 2012
 These classes are populated using SQLAlchemy to connect to the BUD schema on Fasolt. These are the classes representing tables in the
 Feature module of the database schema.
 '''
-from modelOldSchema import Base
+from modelOldSchema import Base, EqualityByIDMixin
+from modelOldSchema.config import SCHEMA
 from modelOldSchema.sequence import Sequence
 from modelOldSchema.taxonomy import Taxonomy
 from sqlalchemy.orm import relationship
 from sqlalchemy.schema import Table, Column, ForeignKey
 from sqlalchemy.types import Integer, String
-from modelOldSchema.config import SCHEMA
 
-class Alias(Base):
+class Alias(Base, EqualityByIDMixin):
     __tablename__ = 'alias'
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
 
@@ -26,7 +26,7 @@ class Alias(Base):
         data = self.name
         return 'Alias(name=%s)' % data
     
-class Feature(Base):
+class Feature(Base, EqualityByIDMixin):
     __tablename__ = 'feature'
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
 
@@ -52,7 +52,7 @@ class Feature(Base):
         data = self.name, self.gene_name
         return 'Feature(name=%s, gene_name=%s)' % data    
     
-class Annotation(Base):
+class Annotation(Base, EqualityByIDMixin):
     __tablename__ = 'feat_annotation'
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
     feature_id = Column('feature_no', Integer, ForeignKey('bud.feature.feature_no'), primary_key=True)

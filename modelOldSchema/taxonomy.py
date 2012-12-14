@@ -6,12 +6,12 @@ Created on Oct 24, 2012
 These classes are populated using SQLAlchemy to connect to the BUD schema on Fasolt. These are the classes representing tables in the
 Taxonomy module of the database schema.
 '''
-from modelOldSchema import Base
+from modelOldSchema import Base, EqualityByIDMixin
 from modelOldSchema.config import SCHEMA
 from sqlalchemy.schema import Column
 from sqlalchemy.types import Integer, String
 
-class Taxonomy(Base):
+class Taxonomy(Base, EqualityByIDMixin):
     __tablename__ = 'taxonomy'
     __table_args__ = {'schema': SCHEMA, 'extend_existing':True}
 

@@ -9,157 +9,140 @@ from queries.parse import Task, TaskType
 from unittest.suite import TestSuite
 import unittest
 
-class TestConnection(unittest.TestCase):
+class ModelCreationMixin(unittest.TestCase):
+    def setUp(self):
+        self.model = Model()
+        self.model.connect(DBUSER, DBPASS)
+
+class TestConnection(ModelCreationMixin):
     
     def test_is_connected(self):
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
-        self.assertTrue(conn.is_connected())
-        
+        self.assertTrue(self.model.is_connected())
 
-class TestGetAndMoveFeaturesAndReferences(unittest.TestCase):
+
+class TestGetAndMoveFeaturesAndReferences(ModelCreationMixin):
         
-    def test_get_feature_by_name_basic(self, feature_name='YJL001W', feature_id=1971):
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
-        f = conn.execute(get_feature_by_name(feature_name))
+    def test_get_feature_by_name(self, feature_name='YJL001W', feature_id=1971):
+        f = self.model.execute(get_feature_by_name(feature_name))
         self.assertEqual(f.id, feature_id)
         
-    def test_get_feature_by_name_case(self):
-        feature_name = 'yjl001W'
-        feature_id = 1971
-        self.test_get_feature_by_name_basic(feature_name, feature_id)
+    def test_get_feature_by_name_case(self, feature_name='yjl001W', feature_id=1971):
+        self.test_get_feature_by_name(feature_name, feature_id)
         
-    def test_get_feature_by_name_genename(self):
-        gene_name = 'PRE3'
-        feature_id = 1971
-        self.test_get_feature_by_name_basic(gene_name, feature_id)
+    def test_get_feature_by_name_genename(self, gene_name='PRE3', feature_id=1971):
+        self.test_get_feature_by_name(feature_name=gene_name)
     
     def test_get_reftemp_by_pmid(self, pubmed_id=23125886, reftemp_id=81007):
-        self.valid_reftemp(pubmed_id, reftemp_id)
+        self.model.execute(self.valid_reftemp(pubmed_id, reftemp_id))
     
     def test_get_refbad_by_pmid(self, pubmed_id=16998476):
-        self.valid_refbad(pubmed_id)
+        self.model.execute(self.valid_refbad(pubmed_id))
     
     def test_get_ref_by_pmid(self, pubmed_id=1986222, ref_id=84):
-        self.valid_ref(pubmed_id, ref_id)
+        self.model.execute(self.valid_ref(pubmed_id, ref_id))
         
     def test_get_reftemps(self):
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
-        rs = conn.execute(get_reftemps())
+        rs = self.model.execute(get_reftemps())
         self.assertTrue(len(rs) > 0)
         
     def test_move_refbad_to_reftemp(self, pubmed_id=16830189):
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
-        try:
-            result = conn.execute(move_refbad_to_reftemp(pubmed_id))
+        def f(session):    
+            result = move_refbad_to_reftemp(pubmed_id, session)  
             self.assertTrue(result)
-            self.valid_reftemp(pubmed_id)
-        finally:
-            conn.execute(move_reftemp_to_refbad(pubmed_id))
+            self.valid_reftemp(pubmed_id, session=session)
+            move_reftemp_to_refbad(pubmed_id, session) 
         
-    def test_move_reftemp_to_refbad(self, pubmed_id=23127840):
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
-        try:
-            result = conn.execute(move_reftemp_to_refbad(pubmed_id))
+        self.model.execute(f)
+
+    def test_move_reftemp_to_refbad(self, pubmed_id=23220089):
+        def f(session):
+            result = move_reftemp_to_refbad(pubmed_id, session)
             self.assertTrue(result)
-            self.valid_refbad(pubmed_id)
-        finally:
-            conn.execute(move_refbad_to_reftemp(pubmed_id))
-        
-    def test_move_reftemp_to_ref(self, pubmed_id=22830526):
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
-        try:
-            result = conn.execute(move_reftemp_to_ref(pubmed_id))
+            self.valid_refbad(pubmed_id, session=session)
+            move_refbad_to_reftemp(pubmed_id, session)
+            
+        self.model.execute(f)
+
+    def test_move_reftemp_to_ref(self, pubmed_id=23117410):
+        def f(session):
+            result = move_reftemp_to_ref(pubmed_id, session)
             self.assertTrue(result)
-            self.valid_ref(pubmed_id)
-        finally:
-            conn.execute(move_ref_to_reftemp(pubmed_id))
+            self.valid_ref(pubmed_id, session=session)
+            move_ref_to_reftemp(pubmed_id, session)
             
-    def test_move_ref_to_reftemp(self, pubmed_id=10085156):
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
-        try:
-            result = conn.execute(move_ref_to_reftemp(pubmed_id))
+        self.model.execute(f)
+  
+    def test_move_ref_to_reftemp(self, pubmed_id=7962081):
+        def f(session):
+            result = move_ref_to_reftemp(pubmed_id, session)
             self.assertTrue(result)
-            self.valid_reftemp(pubmed_id)
-        finally:
-            conn.execute(move_reftemp_to_ref(pubmed_id))
+            self.valid_reftemp(pubmed_id, session=session)
+            move_reftemp_to_ref(pubmed_id, session)
             
-    def valid_ref(self, pubmed_id, ref_id=None):
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
-        
-        from modelOldSchema.reference import Reference
-        ref = conn.execute(lambda session: get_first(session, Reference, pubmed_id=pubmed_id))
-        
-        self.assertTrue(ref.abstract is not None)
-        self.assertTrue(ref.journal is not None)
-        self.assertTrue(ref.created_by is not None)
-        self.assertTrue(ref.date_created is not None)
-        
-        self.assertEqual(ref.pubmed_id, pubmed_id)
-        if ref_id is not None:
-            self.assertEqual(ref.id, ref_id)
+        self.model.execute(f)
             
-    def valid_reftemp(self, pubmed_id, reftemp_id=None):
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
+    def valid_ref(self, pubmed_id, ref_id=None, session=None):
+        def f(session):
+            from modelOldSchema.reference import Reference
+            ref = get_first(Reference, session=session, pubmed_id=pubmed_id)
         
-        from modelOldSchema.reference import RefTemp
-        reftemp = conn.execute(lambda session: get_first(session, RefTemp, pubmed_id=pubmed_id))
+            self.assertTrue(ref.abstract is not None)
+            self.assertTrue(ref.journal is not None)
+            self.assertTrue(ref.created_by is not None)
+            self.assertTrue(ref.date_created is not None)
         
-        self.assertTrue(reftemp.citation is not None)
-        self.assertTrue(reftemp.abstract is not None)
-        self.assertTrue(reftemp.created_by is not None)
-        self.assertTrue(reftemp.date_created is not None)
+            self.assertEqual(ref.pubmed_id, pubmed_id)
+            if ref_id is not None:
+                self.assertEqual(ref.id, ref_id)
+        return f if session is None else f(session)
+ 
+    def valid_reftemp(self, pubmed_id, reftemp_id=None, session=None):
+        def f(session):
+            from modelOldSchema.reference import RefTemp
+            reftemp = get_first(RefTemp, session=session, pubmed_id=pubmed_id)
         
-        self.assertEqual(reftemp.pubmed_id, pubmed_id)
-        if reftemp_id is not None:
-            self.assertEqual(reftemp.id, reftemp_id)
+            self.assertTrue(reftemp.citation is not None)
+            self.assertTrue(reftemp.abstract is not None)
+            self.assertTrue(reftemp.created_by is not None)
+            self.assertTrue(reftemp.date_created is not None)
+        
+            self.assertEqual(reftemp.pubmed_id, pubmed_id)
+            if reftemp_id is not None:
+                self.assertEqual(reftemp.id, reftemp_id)
+        return f if session is None else f(session)
             
-    def valid_refbad(self, pubmed_id):
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
+    def valid_refbad(self, pubmed_id, session=None):    
+        def f(session):
+            from modelOldSchema.reference import RefBad
+            refbad = get_first(RefBad, session=session, pubmed_id=pubmed_id)
         
-        from modelOldSchema.reference import RefBad
-        refbad = conn.execute(lambda session: get_first(session, RefBad, pubmed_id=pubmed_id))
+            self.assertTrue(refbad.created_by is not None)
+            self.assertTrue(refbad.date_created is not None)
         
-        self.assertTrue(refbad.created_by is not None)
-        self.assertTrue(refbad.date_created is not None)
-        
-        self.assertEqual(refbad.pubmed_id, pubmed_id)
+            self.assertEqual(refbad.pubmed_id, pubmed_id)
+        return f if session is None else f(session)
             
-class TestAssociate(unittest.TestCase):
+class TestAssociate(ModelCreationMixin):
     
     def test_validate_genes(self):
         gene_names = ['YAL002W', 'CEN1', 'SPO7', 'YAL016C-B', 'YAL009W']
         feature_ids = [6102, 2899, 6347, 7398, 6347]
 
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
-        name_to_feature = conn.execute(validate_genes(gene_names))
+        name_to_feature = self.model.execute(validate_genes(gene_names))
         
         self.assertEqual(len(gene_names), len(name_to_feature))
         for i in range(0, len(gene_names)):
             self.assertEqual(name_to_feature[gene_names[i]].id, feature_ids[i])
             
     def test_associate(self):
-        pubmed_id = 23113558
-        gene_names = ['ACT1', 'CEN1', 'SPO7', 'YAL016C-B', 'YAL009W']
-
-        conn = Model()
-        conn.connect(DBUSER, DBPASS)
+        def f(session):
+            pubmed_id = 23222539
+            gene_names = ['ACT1', 'CEN1', 'SPO7', 'YAL016C-B', 'YAL009W']
         
-        from modelOldSchema.reference import Reference
+            from modelOldSchema.reference import Reference
 
-        try:
-            conn.execute(move_reftemp_to_ref(pubmed_id))
-            name_to_feature = conn.execute(validate_genes(gene_names))
+            move_reftemp_to_ref(pubmed_id, session=session)
+            name_to_feature = self.model.execute(validate_genes(gene_names))
             tasks = [Task(TaskType.HIGH_PRIORITY, None, "Comment"),
                      Task(TaskType.DELAY, None, "Comment"),
                      Task(TaskType.HTP_PHENOTYPE_DATA, None, "Comment"),
@@ -173,12 +156,12 @@ class TestAssociate(unittest.TestCase):
                      Task(TaskType.REVIEWS, None, "Comment")
                      ]
             
-            result = conn.execute(associate(pubmed_id, name_to_feature, tasks))
+            result = associate(pubmed_id, name_to_feature, tasks, session=session)
             self.assertTrue(result)
             
             
-            curations = conn.execute(lambda session: get_first(session, Reference, pubmed_id=pubmed_id).curations)
-            lit_guides = conn.execute(lambda session: get_first(session, Reference, pubmed_id=pubmed_id).litGuides)
+            curations = get_first(Reference, session=session, pubmed_id=pubmed_id).curations
+            lit_guides = get_first(Reference, session=session, pubmed_id=pubmed_id).litGuides
             
             self.assertEqual(len(curations), 8)
             for curation in curations:
@@ -192,13 +175,13 @@ class TestAssociate(unittest.TestCase):
                 if curation.task == 'Reviews':
                     self.assertEqual(len(lit_guide.features), 0)
     
-        finally:
-            conn.execute(move_ref_to_reftemp(pubmed_id))
+            move_ref_to_reftemp(pubmed_id, session=session)
+        self.model.execute(f)
 
         
         
 if __name__ == '__main__':
     suite = TestSuite()
-    suite.addTest(TestAssociate('test_associate'))
+    suite.addTest(TestGetAndMoveFeaturesAndReferences('test_get_feature_by_name_genename'))
     unittest.TextTestRunner().run(suite)
     

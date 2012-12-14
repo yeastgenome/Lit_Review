@@ -56,27 +56,24 @@ class Model(object):
         finally:
             session.close()
 
-def get(session, model, **kwargs):
-    instances = session.query(model).filter_by(**kwargs).all()
-    return instances
-
-def get_first(session, model, **kwargs):
-    instance = session.query(model).filter_by(**kwargs).first()
-    return instance
-
-def create(session, model, **kwargs):
-    return model(session=session, **kwargs)
-
-def count(session, model, **kwargs):
-    count = session.query(model).filter_by(**kwargs).count()
-    return count
+def get(model, session=None, **kwargs):
+    def f(session):
+        return session.query(model).filter_by(**kwargs).all()
     
-def get_or_create(session, model, **kwargs):
-    instance = get_first(session, model, **kwargs)
-    if instance:
-        return instance
-    else:
-        instance = create(session, model, **kwargs)
-    return instance
+    return f if session is None else f(session)
+    
+def get_first(model, session=None, **kwargs):
+    def f(session):
+        return session.query(model).filter_by(**kwargs).first()
+    
+    return f if session is None else f(session)
+
+def count(model, session=None, **kwargs):
+    def f(session):
+        return session.query(model).filter_by(**kwargs).count()
+    
+    return f if session is None else f(session)
+
+
     
     

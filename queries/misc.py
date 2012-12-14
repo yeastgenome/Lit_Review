@@ -5,37 +5,39 @@ Created on Dec 4, 2012
 '''
 from modelOldSchema.model import get_first, get
 
-def get_feature_by_name(name):
+def get_feature_by_name(name, session=None):
     """
     Get a feature by its name.
     """
     
     from modelOldSchema.feature import Feature
 
-    def x(session):
-        f = get_first(session, Feature, name=name.upper())
-        if f:
-            return f
+    def f(session):
+        feature = get_first(Feature, session=session, name=name.upper())
+        if feature:
+            return feature
         else:
-            return get_first(session, Feature, gene_name=name.upper())
-    return x
+            return get_first(Feature, session=session, gene_name=name.upper())
+
+    return f if session is None else f(session)
     
-def get_reftemps():
+def get_reftemps(session=None):
     
     from modelOldSchema.reference import RefTemp
 
-    def x(session):
-        return get(session, RefTemp)
-    return x
+    def f(session):
+        return get(RefTemp, session=session)
+    
+    return f if session is None else f(session)
 
-def validate_genes(gene_names):
+def validate_genes(gene_names, session=None):
     """
     Convert a list of gene_names to a mapping between those gene_names and features.
     """            
     
     from modelOldSchema.feature import Feature
 
-    def x(session):
+    def f(session):
         if gene_names is not None and len(gene_names) > 0:
             upper_gene_names = [x.upper() for x in gene_names]
             fs = set(session.query(Feature).filter(Feature.name.in_(upper_gene_names)).all())
@@ -56,4 +58,5 @@ def validate_genes(gene_names):
             return name_to_feature
         else:
             return {}
-    return x
+        
+    return f if session is None else f(session)

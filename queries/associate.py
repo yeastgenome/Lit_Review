@@ -3,18 +3,18 @@ Created on Dec 4, 2012
 
 @author: kpaskov
 '''
-from modelOldSchema.model import get_or_create, get_first
+from modelOldSchema.model import get_first
 from queries.parse import TaskType
 
-def associate(pubmed_id, name_to_feature, tasks):
+def associate(pubmed_id, name_to_feature, tasks, session=None):
     """
     Associate a Reference with LitGuide entries.
     """          
     
     from modelOldSchema.reference import Reference, RefCuration, LitGuide
               
-    def x(session):
-        reference = get_first(session, Reference, pubmed_id=pubmed_id)
+    def f(session):
+        reference = get_first(Reference, session=session, pubmed_id=pubmed_id)
    
         for task in tasks:     
             gene_names = task.gene_names
@@ -26,12 +26,12 @@ def associate(pubmed_id, name_to_feature, tasks):
                         
                 ## Create RefCuration objects and add them to the Reference.
                 for feature in features:
-                    curation = get_or_create(session, RefCuration, reference_id = reference.id, task = task.name, feature_id = feature.id)
+                    curation = RefCuration.as_unique(session, reference_id=reference.id, task=task.name, feature_id=feature.id)
                     curation.comment = task.comment
                     reference.curations.append(curation)
                                 
                 ## Create a LitGuide object and attach features to it.
-                lit_guide = get_or_create(session, LitGuide, topic=task.topic, reference_id = reference.id)
+                lit_guide = LitGuide.as_unique(session, topic=task.topic, reference_id=reference.id)
                 for feature in features:
                     if not feature.id in lit_guide.feature_ids:
                         lit_guide.features.append(feature)
@@ -48,16 +48,17 @@ def associate(pubmed_id, name_to_feature, tasks):
                 ## if it is a review, no need to add to ref_curation
                 if task.type == TaskType.REVIEWS:
                     ## topic = task = 'Reviews'
-                    reference.litGuideTopics.append(task.topic)
+                    lit_guide = LitGuide.as_unique(session, reference_id=reference.id, topic=task.topic)
+                    reference.litGuides.append(lit_guide)
                     continue
     
-                curation = get_or_create(session, RefCuration, task=task.name, reference_id=reference.id, feature_id=None)
+                curation = RefCuration.as_unique(session, task=task.name, reference_id=reference.id, feature_id=None)
                 curation.comment = task.comment
                 reference.curations.append(curation)
                 
                 ## Create a LitGuide object.
                 if task.type == TaskType.HTP_PHENOTYPE_DATA or task.type == TaskType.REVIEWS:
-                    lit_guide = get_or_create(session, LitGuide, topic=task.topic, reference_id=reference.id)
+                    lit_guide = LitGuide.as_unique(session, topic=task.topic, reference_id=reference.id)
                     reference.litGuides.append(lit_guide)
         
         session.commit()
@@ -68,5 +69,7 @@ def associate(pubmed_id, name_to_feature, tasks):
         message = message + "<p> LitGuides: "
         for lit_guide in reference.litGuides:
             message = message + str(lit_guide) + ", "
+            
         return message
-    return x
+
+    return f if session is None else f(session)
