@@ -3,6 +3,8 @@ Created on Nov 8, 2012
 
 @author: kpaskov
 '''
+import jsonpickle
+import os
 
 class ParseParameters():
 
@@ -11,14 +13,15 @@ class ParseParameters():
         self.all_gene_names = set()
         self.tasks = []
         
-        task_dict = eval(parameter)
+        print parameter 
+        task_dict = jsonpickle.decode(parameter)
         
         for task in sorted(task_dict.keys()):
             (genes, comment) = task_dict[task]
 
             gene_names = []
             if genes:
-                gene_names = genes.split()
+                gene_names = genes.replace(',',' ').replace('|',' ').replace(';',' ').replace(':',' ').split()
                 self.all_gene_names.update(gene_names)
                 
             task_type = {'High Priority': TaskType.HIGH_PRIORITY,
@@ -52,7 +55,7 @@ class Task():
         elif task_type == TaskType.GO_INFORMATION: self.name = 'GO information'; self.topic = 'Primary Literature'
         elif task_type == TaskType.HEADLINE_INFORMATION: self.name = 'Headline information'; self.topic = 'Primary Literature'
         elif task_type == TaskType.HIGH_PRIORITY: self.name = 'High Priority'; self.topic = 'Primary Literature'
-        elif task_type == TaskType.OTHER_HTP_DATA: self.name = 'Non-phenotype HTP'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.OTHER_HTP_DATA: self.name = 'Non-phenotype HTP'; self.topic = 'Omics'
         
         self.type = task_type
         self.gene_names = gene_names
@@ -73,12 +76,14 @@ class TaskType:
 # medline_journal
 ## need to find out if there is a web service we can call to get the journal full name
 ## and ISSN/ESSN for a journal abbreviation 
-medlineFile = '/data/share/lit_review/J_Medline.txt'  # or need to put this file into a public place
+
+this_dir, this_filename = os.path.split(__file__)
+DATA_PATH = os.path.join(this_dir, 'J_Medline.txt')
 
 class MedlineJournal():
 
     def __init__(self, abbrev):
-        lines = [line.strip() for line in open(medlineFile)]
+        lines = [line.strip() for line in open(DATA_PATH)]
     
         self.journal_title = ''
         self.issn = ''

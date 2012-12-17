@@ -52,6 +52,9 @@ def link_ref(pmid, parameters):
     gene_names = parsed_params.get_all_gene_names()
     name_to_feature = conn.execute(validate_genes(gene_names))
     
+    print gene_names
+    print name_to_feature
+    
     #If we don't get back as many features as we have gene names, find the bad ones and show them to the user.
     if len(name_to_feature) < len(gene_names):
         bad_gene_names = set(gene_names) - set(name_to_feature.keys())

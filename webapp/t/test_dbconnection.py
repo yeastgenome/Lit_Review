@@ -63,7 +63,7 @@ class TestGetAndMoveFeaturesAndReferences(ModelCreationMixin):
             
         self.model.execute(f)
 
-    def test_move_reftemp_to_ref(self, pubmed_id=23117410):
+    def test_move_reftemp_to_ref(self, pubmed_id=23223634):
         def f(session):
             result = move_reftemp_to_ref(pubmed_id, session)
             self.assertTrue(result)
@@ -136,7 +136,7 @@ class TestAssociate(ModelCreationMixin):
             
     def test_associate(self):
         def f(session):
-            pubmed_id = 23222539
+            pubmed_id = 23105524
             gene_names = ['ACT1', 'CEN1', 'SPO7', 'YAL016C-B', 'YAL009W']
         
             from modelOldSchema.reference import Reference
@@ -182,6 +182,6 @@ class TestAssociate(ModelCreationMixin):
         
 if __name__ == '__main__':
     suite = TestSuite()
-    suite.addTest(TestGetAndMoveFeaturesAndReferences('test_get_feature_by_name_genename'))
+    suite.addTest(TestGetAndMoveFeaturesAndReferences('test_get_feature_by_name_case'))
     unittest.TextTestRunner().run(suite)
     

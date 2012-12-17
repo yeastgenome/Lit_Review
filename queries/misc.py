@@ -13,11 +13,11 @@ def get_feature_by_name(name, session=None):
     from modelOldSchema.feature import Feature
 
     def f(session):
-        feature = get_first(Feature, session=session, name=name.upper())
+        feature = get_first(Feature, session, name=name.upper())
         if feature:
             return feature
         else:
-            return get_first(Feature, session=session, gene_name=name.upper())
+            return get_first(Feature, session, gene_name=name.upper())
 
     return f if session is None else f(session)
     
@@ -26,7 +26,7 @@ def get_reftemps(session=None):
     from modelOldSchema.reference import RefTemp
 
     def f(session):
-        return get(RefTemp, session=session)
+        return get(RefTemp, session)
     
     return f if session is None else f(session)
 
@@ -50,7 +50,8 @@ def validate_genes(gene_names, session=None):
                 
             extraneous_names = name_to_feature.keys()
             for name in upper_gene_names:
-                extraneous_names.remove(name.upper())
+                if name.upper() in extraneous_names:
+                    extraneous_names.remove(name.upper())
                     
             for name in extraneous_names:
                 del name_to_feature[name]

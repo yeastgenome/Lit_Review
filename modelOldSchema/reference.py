@@ -6,7 +6,7 @@ Created on Nov 7, 2012
 These classes are populated using SQLAlchemy to connect to the BUD schema on Fasolt. These are the classes representing tables in the
 Reference module of the database schema.
 '''
-from modelOldSchema import Base, EqualityByIDMixin, UniqueMixin, _unique
+from modelOldSchema import Base, EqualityByIDMixin, UniqueMixin
 from modelOldSchema.config import SCHEMA
 from modelOldSchema.feature import Feature
 from queries.parse import MedlineJournal
@@ -18,7 +18,6 @@ from sqlalchemy.orm.session import Session
 from sqlalchemy.schema import Column, ForeignKey, Table
 from sqlalchemy.types import Integer, String, Date
 import datetime
-import modelOldSchema
        
 class Reference(Base, EqualityByIDMixin, UniqueMixin):
     __tablename__ = 'reference'
@@ -61,7 +60,7 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     
     authorNames = association_proxy('author_references', 'author_name')
     authors = association_proxy('author_references', 'author', 
-                                creator=lambda k, v: AuthorReference(author=v, order=k, ar_type='Author'))
+                                creator=lambda k, v: AuthorReference(session=None, author=v, order=k, ar_type='Author'))
     refTypes = relationship("RefType", cascade='all,delete', secondary= Table('ref_reftype', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True))
     refTypeNames = association_proxy('refTypes', 'name')
     
@@ -71,11 +70,11 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
     curations = relationship('RefCuration', cascade='all,delete')
 
     
-    def __init__(self, pubmed_id):
+    def __init__(self, session, pubmed_id):
         self.pubmed_id = pubmed_id
         self.pdf_status='N'
         self.source='PubMed script'
-        self.created_by = modelOldSchema.current_user
+        self.created_by = session.user
         self.date_created = datetime.datetime.now()
         
         pubmed = get_medline_data(pubmed_id)
@@ -90,38 +89,22 @@ class Reference(Base, EqualityByIDMixin, UniqueMixin):
         self.title = pubmed.title
         self.issue = pubmed.issue
                         
-    def create_associated_objects(self, session):
-        def f(session):
-            pubmed = get_medline_data(self.pubmed_id)
+        pubmed = get_medline_data(self.pubmed_id)
 
-            #Add the journal.
-            self.journal = Journal.as_unique(session, abbreviation=pubmed.journal_abbrev)
-            
-            #Add the abstract.
-            self.abst = Abstract.as_unique(session, reference_id = self.id, text = pubmed.abstract_txt)
-                    
-            #Add the authors.
-            order = 0
-            for author_name in pubmed.authors:
-                order += 1
-                self.authors[order] = Author.as_unique(session, name=author_name)
-                    
-            #Add the ref_type
-            self.refType = RefType.as_unique(session, name=pubmed.pub_type)
-        return f if session is None else f(session)
+        #Add the journal.
+        self.journal = Journal.as_unique(session, abbreviation=pubmed.journal_abbrev)
         
-    @classmethod
-    def as_unique(cls, session, *arg, **kw):
-        r = _unique(
-                    session,
-                    cls,
-                    cls.unique_hash,
-                    cls.unique_filter,
-                    cls,
-                    arg, kw
-               )
-        r.create_associated_objects(session)
-        return r
+        #Add the abstract.
+        self.abst = Abstract.as_unique(session, reference_id = self.id, text = pubmed.abstract_txt)
+                
+        #Add the authors.
+        order = 0
+        for author_name in pubmed.authors:
+            order += 1
+            self.authors[order] = Author.as_unique(session, name=author_name)
+                
+        #Add the ref_type
+        self.refType = RefType.as_unique(session, name=pubmed.pub_type)
         
     @classmethod
     def unique_hash(cls, pubmed_id):
@@ -164,13 +147,13 @@ class Journal(Base, EqualityByIDMixin, UniqueMixin):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
-    def __init__(self, abbreviation):
+    def __init__(self, session, abbreviation):
         medlineJournal = MedlineJournal(abbreviation)
         self.abbreviation = abbreviation
         self.full_name = medlineJournal.journal_title
         self.issn = medlineJournal.issn
         self.essn = medlineJournal.essn
-        self.created_by = modelOldSchema.current_user
+        self.created_by = session.user
         self.date_created = datetime.datetime.now()
         
     @classmethod
@@ -197,14 +180,14 @@ class RefTemp(Base, EqualityByIDMixin, UniqueMixin):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
 
-    def __init__(self, pubmed_id):    
+    def __init__(self, session, pubmed_id):    
         self.pubmed_id = pubmed_id
 
         pubmed = get_medline_data(pubmed_id)
         self.citation = pubmed.citation
         self.abstract = pubmed.abstract_txt
 
-        self.created_by = modelOldSchema.current_user
+        self.created_by = session.user
         self.date_created = datetime.datetime.now()
         
     @classmethod
@@ -228,10 +211,10 @@ class RefBad(Base, EqualityByIDMixin, UniqueMixin):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
 
-    def __init__(self, pubmed_id, dbxref_id=None):
+    def __init__(self, session, pubmed_id, dbxref_id=None):
         self.pubmed_id = pubmed_id
         self.dbxref_id = dbxref_id
-        self.created_by = modelOldSchema.current_user
+        self.created_by = session.user
         self.date_created = datetime.datetime.now()
         
     @classmethod
@@ -255,9 +238,9 @@ class Author(Base, EqualityByIDMixin, UniqueMixin):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
-    def __init__(self, name):
+    def __init__(self, session, name):
         self.name = name
-        self.created_by = modelOldSchema.current_user
+        self.created_by = session.user
         self.date_created = datetime.datetime.now()
         
     @classmethod
@@ -282,7 +265,7 @@ class AuthorReference(Base, EqualityByIDMixin, UniqueMixin):
     order = Column('author_order', Integer)
     type = Column('author_type', String)
         
-    def __init__(self, author, order, ar_type):
+    def __init__(self, session, author, order, ar_type):
         self.author = author
         self.order = order
         self.type = ar_type
@@ -305,7 +288,7 @@ class Abstract(Base, EqualityByIDMixin, UniqueMixin):
     reference_id = Column('reference_no', Integer, ForeignKey('bud.reference.reference_no'), primary_key = True)
     text = Column('abstract', String)
    
-    def __init__(self, text, reference_id):
+    def __init__(self, session, text, reference_id):
         self.text = text
         self.reference_id = reference_id
         
@@ -331,10 +314,10 @@ class RefType(Base, EqualityByIDMixin, UniqueMixin):
     created_by = Column('created_by', String)
     date_created = Column('date_created', Date)
     
-    def __init__(self, name):
+    def __init__(self, session, name):
         self.name = name;
         self.source = 'NCBI'
-        self.created_by = modelOldSchema.current_user
+        self.created_by = session.user
         self.date_created = datetime.datetime.now()
         
     @classmethod
@@ -363,10 +346,10 @@ class LitGuide(Base, EqualityByIDMixin, UniqueMixin):
     features = relationship("Feature", secondary= Table('litguide_feat', Base.metadata, autoload=True, schema=SCHEMA, extend_existing=True), lazy = 'subquery')
     feature_ids = association_proxy('features', 'id')
     
-    def __init__(self, reference_id, topic):
+    def __init__(self, session, reference_id, topic):
         self.reference_id = reference_id
         self.topic = topic
-        self.created_by = modelOldSchema.current_user
+        self.created_by = session.user
         self.date_created = datetime.datetime.now()
         
     @classmethod
@@ -396,11 +379,11 @@ class RefCuration(Base, EqualityByIDMixin, UniqueMixin):
     #Relationships
     feature = relationship('Feature', uselist=False)
 
-    def __init__(self, reference_id, task, feature_id):
+    def __init__(self, session, reference_id, task, feature_id):
         self.task = task
         self.reference_id = reference_id
         self.feature_id = feature_id
-        self.created_by = modelOldSchema.current_user
+        self.created_by = session.user
         self.date_created = datetime.datetime.now()
         
     @classmethod

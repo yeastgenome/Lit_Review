@@ -14,7 +14,7 @@ def associate(pubmed_id, name_to_feature, tasks, session=None):
     from modelOldSchema.reference import Reference, RefCuration, LitGuide
               
     def f(session):
-        reference = get_first(Reference, session=session, pubmed_id=pubmed_id)
+        reference = get_first(Reference, session, pubmed_id=pubmed_id)
    
         for task in tasks:     
             gene_names = task.gene_names
@@ -70,6 +70,6 @@ def associate(pubmed_id, name_to_feature, tasks, session=None):
         for lit_guide in reference.litGuides:
             message = message + str(lit_guide) + ", "
             
-        return message
+        return message 
 
     return f if session is None else f(session)

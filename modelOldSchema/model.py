@@ -10,7 +10,6 @@ from modelOldSchema import Base
 from modelOldSchema.config import DBTYPE, DBHOST, DBNAME
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
-import modelOldSchema
 import sys
 import traceback
 
@@ -32,7 +31,7 @@ class Model(object):
         self.engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, username, password, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
         Base.metadata.bind = self.engine
         self.SessionFactory = sessionmaker(bind=self.engine)
-        modelOldSchema.current_user = username.upper()
+        self.current_user = username.upper()
 
         return
     
@@ -48,6 +47,7 @@ class Model(object):
     def execute(self, f, **kwargs):
         try:
             session = self.SessionFactory()
+            session.user = self.current_user
             return f(session, **kwargs)
         except:
             session.rollback()

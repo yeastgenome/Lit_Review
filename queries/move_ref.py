@@ -13,7 +13,7 @@ def move_reftemp_to_refbad(pubmed_id, session=None):
     from modelOldSchema.reference import RefTemp, RefBad
 
     def f(session):        
-        reftemp = get_first(RefTemp, session=session, pubmed_id=pubmed_id)
+        reftemp = get_first(RefTemp, session, pubmed_id=pubmed_id)
         refbad = RefBad.as_unique(session, pubmed_id=pubmed_id)
         
         session.add(refbad)
@@ -32,7 +32,7 @@ def move_refbad_to_reftemp(pubmed_id, session=None):
     from modelOldSchema.reference import RefTemp, RefBad
     
     def f(session):       
-        refbad = get_first(RefBad, session=session, pubmed_id=pubmed_id)
+        refbad = get_first(RefBad, session, pubmed_id=pubmed_id)
         reftemp = RefTemp.as_unique(session, pubmed_id = pubmed_id)
             
         session.add(reftemp)
@@ -50,7 +50,7 @@ def move_reftemp_to_ref(pubmed_id, session=None):
     from modelOldSchema.reference import RefTemp, Reference
 
     def f(session):
-        reftemp = get_first(RefTemp, session=session, pubmed_id=pubmed_id)
+        reftemp = get_first(RefTemp, session, pubmed_id=pubmed_id)
         ref = Reference.as_unique(session, pubmed_id=pubmed_id)
             
         session.add(ref)
@@ -68,7 +68,7 @@ def move_ref_to_reftemp(pubmed_id, session=None):
     from modelOldSchema.reference import RefTemp, Reference
 
     def f(session):        
-        ref = get_first(Reference, session=session, pubmed_id=pubmed_id)
+        ref = get_first(Reference, session, pubmed_id=pubmed_id)
         reftemp = RefTemp.as_unique(session, pubmed_id=pubmed_id)
             
         session.add(reftemp)
