@@ -8,7 +8,7 @@ by Matthew Frazier, MIT) for handling the login sessions and everything.
 
 """
 from flask import Flask, request, render_template, redirect, url_for, flash
-from flask_login import login_required, fresh_login_required
+from flask_login import login_required
 from modelOldSchema.model import Model
 from queries.associate import associate
 from queries.misc import get_reftemps, validate_genes
@@ -23,12 +23,14 @@ app = Flask(__name__)
 conn = Model()
 setup_app(app)
 
+
+
 @app.route("/")
 def index():
     return render_template("index.html")
 
 @app.route("/reference")
-@fresh_login_required
+@login_required
 def reference():
     refs = conn.execute(get_reftemps())
     num_of_refs = len(refs)
@@ -37,7 +39,7 @@ def reference():
                            ref_count=num_of_refs)    
 
 @app.route("/reference/delete/<pmid>")
-@fresh_login_required
+@login_required
 def discard_ref(pmid):
     moved = conn.execute(move_reftemp_to_refbad(pmid))
     if moved:
@@ -46,7 +48,7 @@ def discard_ref(pmid):
         return "An error occurred when deleting the reference for pmid=" + pmid + " from the database."
 
 @app.route("/reference/link/<pmid>/<parameters>")
-@fresh_login_required
+@login_required
 def link_ref(pmid, parameters):
     parsed_params = ParseParameters(parameters)
     gene_names = parsed_params.get_all_gene_names()
@@ -70,6 +72,8 @@ def link_ref(pmid, parameters):
         return "Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + result
     else:
         return "An error occurred when linking the reference for pmid = " + pmid + " to the info you picked/entered: " + parameters
+
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -108,7 +112,6 @@ def reauth():
     return render_template("reauth.html")
 
 @app.route("/logout")
-@login_required
 def logout():
     result = logout_lit_review_user()
     output = {

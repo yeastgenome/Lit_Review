@@ -1,6 +1,6 @@
 
-var root_url = "http://sgd-dev-2.stanford.edu:5000/";
-//var root_url = "http://0.0.0.0:5000/"
+//var root_url = "http://sgd-dev-2.stanford.edu:5000/";
+var root_url = "http://0.0.0.0:5000/"
 var ref_url = root_url + "reference/";
 var delete_ref_url = ref_url + "delete/";
 var link_ref_url = ref_url + "link/";
@@ -38,12 +38,12 @@ function link_paper(pmid, ck_index) {
                 }
 		else {
 
-			var otherSeparators = genes.match(/[,;|:]/g);
+			//var otherSeparators = genes.match(/[,;|:]/g);
 
-			if (otherSeparators) {
-				alert("Please use space to separate gene names");
-				return;
-			}
+			//if (otherSeparators) {
+			//	alert("Please use space to separate gene names");
+			//	return;
+			//}
 
 		}
 

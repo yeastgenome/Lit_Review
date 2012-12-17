@@ -1,12 +1,16 @@
+<!DOCTYPE html>
+<title>Welcome</title>
 {% extends "layout.html" %}
 
 {% block body %}
-<h2>Welcome</h2>
-
-{% if current_user.is_authenticated() %}
-<p>You are authorized to access <a href="{{ url_for('reference') }}">The Literature Review Page</a>.
-{% else %}
-<p>This Web site contains curation information available only to authorized users.
-Available usernames are Dianna, Maria, and Selina.
-{% endif %}
+	<div class=page>
+  		<h1>Welcome</h1>
+  		<div class=metanav>
+  			{% if current_user.is_authenticated() %}
+    			Welcome, {{ current_user.name }} to the new Literature Review Curation tool.
+  			{% else %}
+    			Welcome to the new Literature Review Curation tool. You are not logged in. Please <a href="{{ url_for('reference') }}">log in</a>.
+  			{% endif %}
+  		</div>
+  </div>
 {% endblock body %}

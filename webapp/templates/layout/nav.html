@@ -1,44 +1,24 @@
-    <div class="navbar">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="#">Project</a>
-          <div class="nav-collapse">
-            <ul class="nav">
-              <li class="active"><a href="/">Home</a></li>
+<!DOCTYPE html>
+<title>NavBar</title>
 
-                  <li class="dropdown" id="menu1">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#menu1">
-                      Menu
-                      <b class="caret"></b>
-                    </a>
-                    <ul class="dropdown-menu">
-                      <li><a href="#">Item</a></li>
-                      <li><a href="#">Item</a></li>
-                      <li class="divider"></li>
-                      <li><a href="#">Item</a></li>
-                    </ul>
-                  </li>
-
-                  <li class="dropdown" id="menu2">
-                    <a class="dropdown-toggle" data-toggle="dropdown" href="#menu2">
-                      Menu2
-                      <b class="caret"></b>
-                    </a>
-                    <ul class="dropdown-menu">
-                      <li><a href="#">Item</a></li>
-                      <li><a href="#">Item</a></li>
-                      <li class="divider"></li>
-                      <li><a href="#">Item</a></li>
-                    </ul>
-                  </li>
-
-            </ul>
-          </div><!--/.nav-collapse -->
-        </div>
-      </div>
-    </div>
+<div class="navbar navbar-fixed-top">
+	<div class="navbar-inner">
+		<div class="container">
+			<a class="brand" href="/">PubMed New Literature Review</a>
+			<div class="nav-collapse">
+				<ul class="nav">
+					<li class="active"><a href="http://0.0.0.0:5000/reference">References to Review</a></li>
+					<li><a href="http://www.yeastgenome.org">SGD Home</a></li>
+					<li><a href="http://staff.yeastgenome.org/index.php/Help:geneinfo">Curation Help</a></li>
+            	</ul> 
+				<div style="text-align:right" class=metanav>
+					{% if current_user.is_authenticated() %}
+						Welcome, {{ current_user.name }} | <a href="{{ url_for('logout') }}">log out</a>
+					{% else %}
+    					You are not logged in | <a href="{{ url_for('login') }}">log in</a>
+  					{% endif %}
+  				</div>
+          	</div>
+		</div>
+	</div>
+</div>

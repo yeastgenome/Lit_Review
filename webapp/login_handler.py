@@ -5,8 +5,9 @@ information in Oracle database. This application is using Flask-Login package (c
 by Matthew Frazier, MIT) for handling the login sessions and everything. 
 
 """
+from flask_login import LoginManager, login_user, logout_user, confirm_login, \
+    current_user
 from webapp.config import Anonymous, USER_NAMES, USERS
-from flask_login import LoginManager, login_user, logout_user, confirm_login
 
 login_manager = LoginManager()
 login_manager.anonymous_user = Anonymous
@@ -40,6 +41,9 @@ def confirm_login_lit_review_user():
 def logout_lit_review_user():
     logout_user()
     return LogoutResult.SUCCESSFUL
+
+def get_current_user():
+    return current_user
 
 class LoginResult:
     SUCCESSFUL=0
