@@ -18,7 +18,6 @@ def move_reftemp_to_refbad(pubmed_id, session=None):
         
         session.add(refbad)
         session.delete(reftemp)
-        session.commit()
         return True
     
     return f if session is None else f(session)
@@ -37,7 +36,6 @@ def move_refbad_to_reftemp(pubmed_id, session=None):
             
         session.add(reftemp)
         session.delete(refbad)
-        session.commit()
         return True
     
     return f if session is None else f(session)
@@ -55,7 +53,6 @@ def move_reftemp_to_ref(pubmed_id, session=None):
             
         session.add(ref)
         session.delete(reftemp)
-        session.commit()
         return True
   
     return f if session is None else f(session)
@@ -73,7 +70,12 @@ def move_ref_to_reftemp(pubmed_id, session=None):
             
         session.add(reftemp)
         session.delete(ref)
-        session.commit()
         return True
     
     return f if session is None else f(session)
+
+class MoveRefException(Exception):
+    def __init__(self, message):
+        self.message = message
+    def __str__(self):
+        return repr(self.message)

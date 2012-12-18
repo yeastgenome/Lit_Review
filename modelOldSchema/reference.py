@@ -9,8 +9,7 @@ Reference module of the database schema.
 from modelOldSchema import Base, EqualityByIDMixin, UniqueMixin
 from modelOldSchema.config import SCHEMA
 from modelOldSchema.feature import Feature
-from queries.parse import MedlineJournal
-from queries.pubmed import get_medline_data
+from queries.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy.orm.collections import attribute_mapped_collection

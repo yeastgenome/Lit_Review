@@ -44,7 +44,7 @@ class Model(object):
             traceback.print_exc(file=sys.stdout)
             return False
         
-    def execute(self, f, **kwargs):
+    def execute(self, f, commit=False, **kwargs):
         try:
             session = self.SessionFactory()
             session.user = self.current_user
@@ -54,6 +54,8 @@ class Model(object):
             traceback.print_exc(file=sys.stdout)
             return False
         finally:
+            if commit:
+                session.commit()
             session.close()
 
 def get(model, session=None, **kwargs):

@@ -15,20 +15,46 @@ login_manager.login_view = "login"
 login_manager.login_message = u"Please log in to access this page."
 login_manager.refresh_view = "reauth"
 
+#Exceptions
+class LoginException(Exception):
+    def __init__(self, message):
+        self.message = message
+    def __str__(self):
+        return repr(self.message)
+    
+class NotOnListException(LoginException):
+    def __init__(self):
+        super(LoginException, self).__init__('You are not allowed to use this interface. Contact sgd-programmers to add your name to the list.')
+        
+class BadUsernamePasswordException(LoginException):
+    def __init__(self):
+        super(LoginException, self).__init__('You typed in an invalid username/password')
+        
+class LogoutException(Exception):
+    def __init__(self, message):
+        self.message = message
+    def __str__(self):
+        return repr(self.message)
+    
 def setup_app(app):
     login_manager.setup_app(app)
         
 
-def login_lit_review_user(username, remember):
-    result = None
+def login_lit_review_user(username, password, model, remember):
+    try:
+        model.connect(username, password)
+        if not model.is_connected():
+            raise Exception()
+    except Exception:
+        raise BadUsernamePasswordException()
+    
     if username in USER_NAMES:
         if login_user(USER_NAMES[username], remember=remember):
-            result = LoginResult.SUCCESSFUL
+            return True
         else:
-            result = LoginResult.UNSUCCESSFUL
+            raise LoginException('Sorry, but Flask-login could not log you in.')
     else:
-        result = LoginResult.NOT_ON_LIST
-    return result
+        raise NotOnListException()
 
 @login_manager.user_loader
 def load_lit_review_user(user_id):
@@ -39,20 +65,14 @@ def confirm_login_lit_review_user():
     return 'Reauthenticated'
     
 def logout_lit_review_user():
-    logout_user()
-    return LogoutResult.SUCCESSFUL
+    if logout_user():
+        return True
+    else:
+        raise LogoutException('Sorry, but Flask-login could not log you out.')
 
 def get_current_user():
     return current_user
 
-class LoginResult:
-    SUCCESSFUL=0
-    NOT_ON_LIST=1
-    UNSUCCESSFUL=2
-    BAD_USERNAME_PASSWORD=3
-    
-class LogoutResult:
-    SUCCESSFUL=0
 
 
 

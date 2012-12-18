@@ -8,7 +8,11 @@
 {% set active_page = "index" %}
 
 {% for message in get_flashed_messages() %}
-    <div class=alert>{{ message }}</div>
+    <div class=alert>
+    {% for n in message.split("<br>") %}
+    	{{ n }} <br>
+    {% endfor %}
+    </div>
 {% endfor %}
   
 <body>

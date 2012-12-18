@@ -1,10 +1,3 @@
-
-//var root_url = "http://sgd-dev-2.stanford.edu:5000/";
-var root_url = "http://0.0.0.0:5000/"
-var ref_url = root_url + "reference/";
-var delete_ref_url = ref_url + "delete/";
-var link_ref_url = ref_url + "link/";
-
 /* this function will call the delete url to discard the paper from the database 
  * and replace the section with the message returned from the server.
  */ 
@@ -12,100 +5,16 @@ var link_ref_url = ref_url + "link/";
 function show_hide_comment(id) {
 	checkbox = document.getElementById(id + '_cb')
 	comment_block = document.getElementById(id + '_cm')
+	comment_text = document.getElementById(id + '_ta')
+	gene_text = document.getElementById(id + '_genes')
 	if (!checkbox.checked) {
 		comment_block.style.display = 'none';
+		comment_text.value = "";
+		gene_text.value = "";
 	}
 	else {
 		comment_block.style.display = 'block';
 	}
-}
-
-function link_paper(pmid, ck_index) {
-	var url = link_ref_url + pmid;
-	var parameter = '';
-	var gene_hash = {};
-
-	for (var i = 1; i <= ck_index; i++) {
-		var ck_id = "ck_" + pmid + '_' + i;
-		var gene_id = "gene_" + pmid + '_' + i;
-		var comment_id = "comment_" + pmid + '_' + i;
-
-		var genes = $("#" + gene_id).attr("value");
-		var comment = $("#" + comment_id).attr("value");
-
-		if (genes == undefined) {
-			genes = '';
-		}
-
-		var ck_name = $("#" + ck_id).val();
-		if ($("#" + ck_id).is(":checked")) {
-		        var ckNameMatch = ck_name.match(/(GO|Classical phenotype|Headline)/);
-			if (ckNameMatch)  {
-				if (genes) {
-					var geneArray = genes.split(' ');
-					$.each(geneArray, function(index, gene) {
-						gene_hash[gene] = 1;
-					});
-				}
-				else {
-					alert("Please enter gene names for " + ck_name);
-					return;
-				}
-			}
-			else if (genes) {
-				var geneArray2 = genes.split(' ');
-				var found_same_gene = 0;
-                                $.each(geneArray2, function(index, gene) {
-					if (gene in gene_hash) {
-						alert("You have used the same gene name (" + gene + ") for two different literature topics");
-						found_same_gene = 1;
-
-						return;
-						
-					}
-
-                                     	gene_hash[gene] = 1;
-                                });
-
-				if (found_same_gene == 1) {
-					return;
-				}
-
-			}
-			
-			if (parameter != '') {
-				parameter += ', ';
-			}
-			parameter += '"' + ck_name + '": ["' + genes + '", "' + comment + '"]';
-		}
-		else if (genes) {
-			alert ("You entered gene(s) for " + ck_name + ", but didn't check the box?");
-			return;
-		}
-	}
-
-	if (parameter == '') {
-		alert("You have to check something before press the 'Link...' button");
-		return;
-	}
-
-	parameter = "{" + parameter + "}";
-
-	url += '/' + parameter;
-
-	$.get(url, function(data) {
-		var notFound = data.match(/Not found/);
-		if (notFound) {
-			alert(data);
-			return;	
-	  	}
-
-		var user = document.getElementById("user").value;
-
-	        $("#" + pmid).empty().append("<font color=green>" + data + "</font>" + "<br><a href=http://pastry.stanford.edu/cgi-bin/curation/litGuideCuration?user=" + user + "&ref=" + pmid + ">Literature Guide Curation</a>");
-
-	});
-
 }
 
 /* this is used for creating the collapsible section for abstracts */
