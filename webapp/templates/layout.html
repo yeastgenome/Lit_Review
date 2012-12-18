@@ -7,17 +7,23 @@
 <!-- Sets active_page variable for active tab -->
 {% set active_page = "index" %}
 
+{% for message in get_flashed_messages() %}
+    <div class=alert>{{ message }}</div>
+{% endfor %}
+  
 <body>
 	<div class="container">
     	<!-- Includes layout/nav.html into template -->
     	{% include "layout/nav.html" %}
 
     	<div class="container">
+    		
 			{% block body %}{% endblock %}
 		</div> <!-- /container -->
 
     	<!-- Includes layout/footer.html into template -->
     	{% include "layout/footer.html" %}
     </div>
-</body>
+    
 
+</body>

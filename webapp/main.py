@@ -13,7 +13,7 @@ from modelOldSchema.model import Model
 from queries.associate import associate
 from queries.misc import get_reftemps, validate_genes
 from queries.move_ref import move_reftemp_to_refbad, move_reftemp_to_ref
-from queries.parse import ParseParameters
+from queries.parse import ParseParameters, TaskType, Task
 from webapp.config import SECRET_KEY, HOST, PORT
 from webapp.login_handler import LoginResult, LogoutResult, \
     confirm_login_lit_review_user, logout_lit_review_user, login_lit_review_user, \
@@ -38,42 +38,62 @@ def reference():
                            ref_list=refs,
                            ref_count=num_of_refs)    
 
-@app.route("/reference/delete/<pmid>")
+@app.route("/reference/delete/<pmid>", methods=['GET', 'POST'])
 @login_required
 def discard_ref(pmid):
     moved = conn.execute(move_reftemp_to_refbad(pmid))
     if moved:
-        return "Reference for pmid=" + pmid + " has been removed from the database!"
+        flash("Reference for pmid=" + pmid + " has been removed from the database!")
     else:
-        return "An error occurred when deleting the reference for pmid=" + pmid + " from the database."
+        flash("An error occurred when deleting the reference for pmid=" + pmid + " from the database.")
+    return redirect(request.args.get("next") or url_for("reference"))
 
-@app.route("/reference/link/<pmid>/<parameters>")
+@app.route("/link_paper/<pmid>/", methods=['GET', 'POST'])
 @login_required
-def link_ref(pmid, parameters):
-    parsed_params = ParseParameters(parameters)
-    gene_names = parsed_params.get_all_gene_names()
-    name_to_feature = conn.execute(validate_genes(gene_names))
+def link_ref(pmid):
+    tasks = []
+    all_gene_names = set()
+    for key in request.form.keys():
+        if key.endswith('_cb'):
+            genes = request.form[key[:-2] + 'genes']
+            gene_names = []
+            if genes:
+                gene_names = genes.replace(',',' ').replace('|',' ').replace(';',' ').replace(':',' ').split()
+                all_gene_names.update(gene_names)
+                
+            task_type = {'high_priority': TaskType.HIGH_PRIORITY,
+                         'delay': TaskType.DELAY,
+                         'htp': TaskType.HTP_PHENOTYPE_DATA,
+                         'other': TaskType.OTHER_HTP_DATA,
+                         'go': TaskType.GO_INFORMATION,
+                         'phenotype': TaskType.CLASSICAL_PHENOTYPE_INFORMATION,
+                         'headline': TaskType.HEADLINE_INFORMATION,
+                         'review': TaskType.REVIEWS,
+                         'add_to_db': TaskType.ADD_TO_DATABASE
+                         }
+            
+            task = Task(task_type, gene_names, request.form[key[:-2] + 'ta'])
+            tasks.append(task)
     
-    print gene_names
-    print name_to_feature
+    
+    name_to_feature = conn.execute(validate_genes(all_gene_names))
     
     #If we don't get back as many features as we have gene names, find the bad ones and show them to the user.
     if len(name_to_feature) < len(gene_names):
         bad_gene_names = set(gene_names) - set(name_to_feature.keys())
-        return "Not found Gene name(s): " + ', '.join(bad_gene_names)
+        flash("Not found Gene name(s): " + ', '.join(bad_gene_names))
     
     result = conn.execute(move_reftemp_to_ref(pmid))
     if not result:
-        return "Problem moving temporary reference for pmid = " + pmid + " to the reference table."
+        flash("Problem moving temporary reference for pmid = " + pmid + " to the reference table.")
     
     
-    result = conn.execute(associate(pmid, name_to_feature, parsed_params.get_tasks()))
+    result = conn.execute(associate(pmid, name_to_feature, tasks))
     if result is not None:
-        return "Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + result
+        flash("Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<p>" + result)
     else:
-        return "An error occurred when linking the reference for pmid = " + pmid + " to the info you picked/entered: " + parameters
-
-
+        flash("An error occurred when linking the reference for pmid = " + pmid + " to the info you picked/entered.")
+    return redirect(request.args.get("next") or url_for("reference"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -95,12 +115,12 @@ def login():
             LoginResult.UNSUCCESSFUL: "Sorry, but you could not log in.",
             LoginResult.BAD_USERNAME_PASSWORD: "You typed in an invalid username/password"
         }[result]
+        print output  
         flash(output)
         
-    if result == LoginResult.SUCCESSFUL:
-        return redirect(request.args.get("next") or url_for("index"))
-    else:
-        return render_template("login.html")
+        if result == LoginResult.SUCCESSFUL:
+            return redirect(request.args.get("next") or url_for("index"))
+    return render_template("login.html")
 
 @app.route("/reauth", methods=["GET", "POST"])
 @login_required
@@ -108,7 +128,7 @@ def reauth():
     if request.method == "POST":
         output = confirm_login_lit_review_user()
         flash(output)
-        return redirect(url_for("index"))
+        return redirect(url_for("index")) 
     return render_template("reauth.html")
 
 @app.route("/logout")

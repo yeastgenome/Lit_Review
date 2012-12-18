@@ -8,24 +8,24 @@ var link_ref_url = ref_url + "link/";
 /* this function will call the delete url to discard the paper from the database 
  * and replace the section with the message returned from the server.
  */ 
-function discard_paper(pmid) {
 
-	var url = delete_ref_url + pmid;
-	// alert(url);
-	$.get(url, function(data) {
-		$("#" + pmid).empty().append("<font color=red>" + data + "</font>");
-	});
-
+function show_hide_comment(id) {
+	checkbox = document.getElementById(id + '_cb')
+	comment_block = document.getElementById(id + '_cm')
+	if (!checkbox.checked) {
+		comment_block.style.display = 'none';
+	}
+	else {
+		comment_block.style.display = 'block';
+	}
 }
 
 function link_paper(pmid, ck_index) {
-
 	var url = link_ref_url + pmid;
 	var parameter = '';
 	var gene_hash = {};
 
 	for (var i = 1; i <= ck_index; i++) {
-
 		var ck_id = "ck_" + pmid + '_' + i;
 		var gene_id = "gene_" + pmid + '_' + i;
 		var comment_id = "comment_" + pmid + '_' + i;
@@ -34,19 +34,8 @@ function link_paper(pmid, ck_index) {
 		var comment = $("#" + comment_id).attr("value");
 
 		if (genes == undefined) {
-              		genes = '';
-                }
-		else {
-
-			//var otherSeparators = genes.match(/[,;|:]/g);
-
-			//if (otherSeparators) {
-			//	alert("Please use space to separate gene names");
-			//	return;
-			//}
-
+			genes = '';
 		}
-
 
 		var ck_name = $("#" + ck_id).val();
 		if ($("#" + ck_id).is(":checked")) {
@@ -120,43 +109,25 @@ function link_paper(pmid, ck_index) {
 }
 
 /* this is used for creating the collapsible section for abstracts */
-
 function activateCollapsible(id) {
-
-      if (window.addEventListener) {
-
-             window.addEventListener("load", function(){makeCollapsible(document.getElementById(id), 1);}, false);
-
-       }
-       else if (window.attachEvent) {
-
-             window.attachEvent("onload", function(){makeCollapsible(document.getElementById(id), 1);});
-
-       }
-       else {
-
-              window.onload = function(){makeCollapsible(document.getElementById(id), 1);};
-
-       }
-
+	if (window.addEventListener) {
+		window.addEventListener("load", function(){makeCollapsible(document.getElementById(id), 1);}, false);
+	}
+	else if (window.attachEvent) {
+		window.attachEvent("onload", function(){makeCollapsible(document.getElementById(id), 1);});
+	}
+	else {
+		window.onload = function(){makeCollapsible(document.getElementById(id), 1);};
+	}
 }
 
 /* used to bold the author names in the citation */
-
-function bold_citation(count)
-{
-
+function bold_citation(count) {
 	for (var i = 1; i <= count; i++) {
-
 		citation = document.getElementById('citation' + i);
-
 		citation.innerHTML = citation.innerHTML.replace(/([^0-9]+\([0-9]{4}\))/g, "<strong>$1</strong>");
-
-
 	}
-
 	return true;
-
 }
 
 
@@ -170,8 +141,7 @@ function bold_citation(count)
  * highlightStartTag or highlightEndTag parameters are omitted or
  * are empty strings then the default <font> tags will be used.
  */
-function doHighlight(bodyText, searchTerm, highlightStartTag, highlightEndTag) 
-{
+function doHighlight(bodyText, searchTerm, highlightStartTag, highlightEndTag) {
   // the highlightStartTag and highlightEndTag parameters are optional
   if ((!highlightStartTag) || (!highlightEndTag)) {
     highlightStartTag = "<font style='color:blue; background-color:yellow;'>";
@@ -218,8 +188,7 @@ function doHighlight(bodyText, searchTerm, highlightStartTag, highlightEndTag)
  * Only the "searchText" parameter is required; all other parameters
  * are optional and can be omitted.
  */
-function highlightSearchTerms(searchText, treatAsPhrase, warnOnFailure, highlightStartTag, highlightEndTag)
-{
+function highlightSearchTerms(searchText, treatAsPhrase, warnOnFailure, highlightStartTag, highlightEndTag) {
   // if the treatAsPhrase parameter is true, then we should search for 
   // the entire phrase that was entered; otherwise, we will split the
   // search string so that each word is searched for and highlighted
@@ -249,7 +218,6 @@ function highlightSearchTerms(searchText, treatAsPhrase, warnOnFailure, highligh
 
 
 function show_hide (buttonId, buttonNm, contentId) {
-
 	if ($('#' + buttonId).val().match('Show')) {
 	    $('#' + buttonId).val('Hide ' + buttonNm);
 	    $('#' + contentId).show();
@@ -275,7 +243,7 @@ defaultState=1;	//1 = show, 0 = hide
  * 
  * listElement - the element representing the list to make collapsible
  */
-function makeCollapsible(listElement,listState){
+function makeCollapsible(listElement,listState) {
   if(listState!=null) defaultState=listState;
 
   // removed list item bullets and the sapce they occupy
@@ -333,9 +301,9 @@ function makeCollapsible(listElement,listState){
  * sublistElement - an array of elements representing the sublists that should
  *                  be opened or closed when the toggle gadget is clicked
  */
-function createToggleFunction(toggleElement,sublistElements){
+function createToggleFunction(toggleElement,sublistElements) {
 
-  return function(){
+  return function() {
 
     // toggle status of toggle gadget
     if (toggleElement.getAttribute('class')=='collapsibleClosed'){
