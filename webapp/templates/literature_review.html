@@ -21,7 +21,9 @@
         {% if loop.index <= 10 %}   <!-- just for testing purpose -->
 
           {% set pmid = row.pubmed_id %}
-	  
+       
+	      {% set sub_form = form.get_reference_form(pmid) %}
+
           <div id='{{ pmid}}'>   <!-- start pubmed section -->
        
           <span id='citation{{ loop.index }}'>{{ row.citation }}</span> <br>
@@ -46,76 +48,74 @@
 	  </form>
 
 	  <form name="input" action="/reference/link/{{pmid}}" method="post"><ul>
-	     <li>
-	     <input type="checkbox" id="high_priority_cb" name="high_priority_cb" value = 'cb' onclick="show_hide_comment('high_priority')"/> High Priority
-	     <ul><div id="high_priority_cm" style="display:none;">
-	     	Comment: <textarea class="span2" style="width:100%" rows="3" id="high_priority_ta" name="high_priority_ta"> </textarea>
+	    
+	     {{sub_form.high_priority(id=pmid~'_high_priority', onclick="show_hide_comment('"~pmid~"_high_priority')")}} {{sub_form.high_priority.label.text }} <br>
+	     <ul><div id={{pmid~"_high_priority_block"}} style="display:none;">
+	     	{{sub_form.high_priority_comment.label}}
+	     	{{sub_form.high_priority_comment(id=pmid~'_high_priority_comment', style="width:100%", rows="3")}}
 	     </div></ul>
-	     </li>
 	     
-	     <li>
-	     <input type="checkbox" id="delay_cb" name="delay_cb" value = 'cb' onclick="show_hide_comment('delay')"/> Delay
-	     <ul><div id="delay_cm" style="display:none;">
-	     	Comment: <textarea class="span2" style="width:100%" rows="3" id="delay_ta" name="delay_ta"> </textarea>
+	     {{sub_form.delay(id=pmid~'_delay', onclick="show_hide_comment('"~pmid~"_delay')")}} {{sub_form.delay.label.text }} <br>
+	     <ul><div id={{pmid~"_delay_block"}} style="display:none;">
+	     	{{sub_form.delay_comment.label}}
+	     	{{sub_form.delay_comment(id=pmid~'_delay_comment', style="width:100%", rows="3")}}
 	     </div></ul>
-	     </li>
 
-	     <li>
-	     <input type="checkbox" id="htp_cb" name="htp_cb" value = 'cb' onclick="show_hide_comment('htp')"/> HTP phenotype data (adds the 'Omics' topic)
-	     <ul><div id="htp_cm" style="display:none;">
-	     	Comment: <textarea class="span2" style="width:100%" rows="3" id="htp_ta" name="htp_ta"> </textarea>
+	     {{sub_form.htp(id=pmid~'_htp', onclick="show_hide_comment('"~pmid~"_htp')")}} {{sub_form.htp.label.text }} <br>     	
+		 <ul><div id={{pmid~"_htp_block"}} style="display:none;">
+	     	{{sub_form.htp_comment.label}}
+	     	{{sub_form.htp_comment(id=pmid~'_htp_comment', style="width:100%", rows="3")}}
 	     </div></ul>
-	     </li>
 
-	     <li>
-	     <input type="checkbox" id="other_cb" name="other_cb" value = 'cb' onclick="show_hide_comment('other')"/> Other HTP data (adds the 'Omics' topic)
-	     <ul><div id="other_cm" style="display:none;">
-	     	Comment: <textarea class="span2" style="width:100%" rows="3" id="other_ta" name="other_ta"> </textarea>
+	     {{sub_form.other(id=pmid~'_other', onclick="show_hide_comment('"~pmid~"_other')")}} {{sub_form.other.label.text }} <br>
+		 <ul><div id={{pmid~"_other_block"}} style="display:none;">
+	     	{{sub_form.other_comment.label}}
+	     	{{sub_form.other_comment(id=pmid~'_other_comment', style="width:100%", rows="3")}}
 	     </div></ul>
-	     </li>
 	     
-	     <li>
-	     <input type="checkbox" id="go_cb" name="go_cb" value = 'cb' onclick="show_hide_comment('go')"/> GO information
-	     <ul><div id="go_cm" style="display:none;">
-	     	Link to these genes and add paper to Primary Literature: <textarea class="span2" style="width:100%" rows="1" id="go_genes" name="go_genes"> </textarea>
-	     	Comment: <textarea class="span2" style="width:100%" rows="3" id="go_ta" name="go_ta"> </textarea>
+	     {{sub_form.go(id=pmid~'_go', onclick="show_hide_comment('"~pmid~"_go')")}} {{sub_form.go.label.text }} <br>
+	     <ul><div id={{pmid~"_go_block"}} style="display:none;">
+	     	{{sub_form.go_genes.label}}
+	     	{{sub_form.go_genes(id=pmid~'_go_genes', style="width:100%", rows="1")}}
+	     	{{sub_form.go_comment.label}}
+	     	{{sub_form.go_comment(id=pmid~'_go_comment', style="width:100%", rows="3")}}
 	     </div></ul>
-	     </li>
 	     
-	     <li>
-	     <input type="checkbox" id="phenotype_cb" name="phenotype_cb" value = 'cb' onclick="show_hide_comment('phenotype')"/> Classical phenotype information
-	     <ul><div id="phenotype_cm" style="display:none;">
-	     	Link to these genes and add paper to Primary Literature: <textarea class="span2" style="width:100%" rows="1" id="phenotype_genes" name="phenotype_genes"> </textarea>
-	     	Comment: <textarea class="span2" style="width:100%" rows="3" id="phenotype_ta" name="phenotype_ta"> </textarea>
+	     {{sub_form.phenotype(id=pmid~'_phenotype', onclick="show_hide_comment('"~pmid~"_phenotype')")}} {{sub_form.phenotype.label.text }} <br>
+	     <ul><div id={{pmid~"_phenotype_block"}} style="display:none;">
+	     	{{sub_form.phenotype_genes.label}}
+	     	{{sub_form.phenotype_genes(id=pmid~'_phenotype_genes', style="width:100%", rows="1")}}
+	     	{{sub_form.phenotype_comment.label}}
+	     	{{sub_form.phenotype_comment(id=pmid~'_phenotype_comment', style="width:100%", rows="3")}}
 	     </div></ul>
-	     </li>
 	     
-	     <li>
-	     <input type="checkbox" id="headline_cb" name="headline_cb" value = 'cb' onclick="show_hide_comment('headline')"/> Headline information
-	     <ul><div id="headline_cm" style="display:none;">
-	     	Link to these genes and add paper to Primary Literature: <textarea class="span2" style="width:100%" rows="1" id="headline_genes" name="headline_genes"> </textarea>
-	     	Comment: <textarea class="span2" style="width:100%" rows="3" id="headline_ta" name="headline_ta"> </textarea>
+	     {{sub_form.headline(id=pmid~'_headline', onclick="show_hide_comment('"~pmid~"_headline')")}} {{sub_form.headline.label.text }} <br>
+	     <ul><div id={{pmid~"_headline_block"}} style="display:none;">
+	     	{{sub_form.headline_genes.label}}
+	     	{{sub_form.headline_genes(id=pmid~'_headline_genes', style="width:100%", rows="1")}}
+	     	{{sub_form.headline_comment.label}}
+	     	{{sub_form.headline_comment(id=pmid~'_headline_comment', style="width:100%", rows="3")}}
 	     </div></ul>
-	     </li>
 	     
-	     <li>
-	     <input type="checkbox" id="review_cb" name="review_cb" value = 'cb' onclick="show_hide_comment('review')"/> Review
-	     <ul><div id="review_cm" style="display:none;">
-	     	Optionally link to these genes: <textarea class="span2" style="width:100%" rows="1" id="review_genes" name="review_genes"> </textarea>
-	     	Comment: <textarea class="span2" style="width:100%" rows="3" id="review_ta" name="review_ta"> </textarea>
+	     {{sub_form.review(id=pmid~'_review', onclick="show_hide_comment('"~pmid~"_review')")}} {{sub_form.review.label.text }} <br>
+	     <ul><div id={{pmid~"_review_block"}} style="display:none;">
+	     	{{sub_form.review_genes.label}}
+	     	{{sub_form.review_genes(id=pmid~'_review_genes', style="width:100%", rows="1")}}
+	     	{{sub_form.review_comment.label}}
+	     	{{sub_form.review_comment(id=pmid~'_review_comment', style="width:100%", rows="3")}}
 	     </div></ul>
-	     </li>
 	     
-	     <li>
-	     <input type="checkbox" id="add_to_db_cb" name="add_to_db_cb" value = 'cb' onclick="show_hide_comment('add_to_db')"/> Add to database
-	     <ul><div id="add_to_db_cm" style="display:none;">
-	     	Optionally link to these genes and add paper to Additional Literature: <textarea class="span2" style="width:100%" rows="1" id="add_to_db_genes" name="add_to_db_genes"> </textarea>
-	     	Comment: <textarea class="span2" style="width:100%" rows="3" id="add_to_db_ta" name="add_to_db_ta"> </textarea>
+	     {{sub_form.add_to_db(id=pmid~'_add_to_db', onclick="show_hide_comment('"~pmid~"_add_to_db')")}} {{sub_form.add_to_db.label.text }} <br>
+	     <ul><div id={{pmid~"_add_to_db_block"}} style="display:none;">
+	     	{{sub_form.add_to_db_genes.label}}
+	     	{{sub_form.add_to_db_genes(id=pmid~'_add_to_db_genes', style="width:100%", rows="1")}}
+	     	{{sub_form.add_to_db_comment.label}}
+	     	{{sub_form.add_to_db_comment(id=pmid~'_add_to_db_comment', style="width:100%", rows="3")}}
 	     </div></ul>
-	     </li>  
     
 	  </ul>
-		<input class='btn' type="submit" value="Link checked tags/topics/genes to this paper">
+		{{sub_form.link(class='btn')}}
+
 	</form>
 	  </div>  <!-- end of a pubmed section -->
 

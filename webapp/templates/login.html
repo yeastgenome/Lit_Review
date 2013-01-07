@@ -3,16 +3,17 @@
 
 {% extends "layout.html" %}
 
+
+
 {% block body %}
+
   
-	<h2>Enter your Oracle Database username and password:</h2>
-	<form action="" method=post>
-		<dl>
-			<dt>Username:
-			<dd><input type=text name=username>
-			<dt>Password:
-			<dd><input type=password name=password>
-			<dd><input type=submit value=Login class='btn'>
-		</dl>
+	<h2>Please enter your Oracle Database username and password.</h2>
+
+	<form method="POST" action="/login">
+    	<div>{{ form.username.label(style="font-weight:bold") }} {{ form.username() }}</div>
+    	<div>{{ form.password.label(style="font-weight:bold") }} {{ form.password() }}</div>
+    	<div>{{ form.login() }}</div>
 	</form>
+
 {% endblock %}

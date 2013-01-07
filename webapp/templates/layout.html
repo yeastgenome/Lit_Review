@@ -7,6 +7,7 @@
 <!-- Sets active_page variable for active tab -->
 {% set active_page = "index" %}
 
+<!-- Prints flashed messages from Flask -->
 {% for message in get_flashed_messages() %}
     <div class=alert>
     {% for n in message.split("<br>") %}
@@ -14,6 +15,17 @@
     {% endfor %}
     </div>
 {% endfor %}
+
+<!-- Prints errors from any forms. -->
+{% if form and form.errors %}
+	<div class=alert>
+    	{% for field_name, field_errors in form.errors|dictsort if field_errors %}
+            {% for error in field_errors %}
+    			{{ error }} <br>
+    		{% endfor %}
+    	{% endfor %}
+    </div>
+{% endif %}
   
 <body>
 	<div class="container">

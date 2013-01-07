@@ -41,7 +41,6 @@ class Model(object):
             self.engine.connect()
             return True
         except:                 
-            traceback.print_exc(file=sys.stdout)
             return False
         
     def execute(self, f, commit=False, **kwargs):

@@ -2,20 +2,21 @@
  * and replace the section with the message returned from the server.
  */ 
 
-function show_hide_comment(id) {
-	checkbox = document.getElementById(id + '_cb')
-	comment_block = document.getElementById(id + '_cm')
-	comment_text = document.getElementById(id + '_ta')
+function show_hide_comment(id, show) {
+	checkbox = document.getElementById(id)
+	block = document.getElementById(id + '_block')
+	comment_text = document.getElementById(id + '_comment')
 	gene_text = document.getElementById(id + '_genes')
 	if (!checkbox.checked) {
-		comment_block.style.display = 'none';
+		block.style.display = 'none';
 		comment_text.value = "";
 		gene_text.value = "";
 	}
 	else {
-		comment_block.style.display = 'block';
+		block.style.display = 'block';
 	}
 }
+
 
 /* this is used for creating the collapsible section for abstracts */
 function activateCollapsible(id) {

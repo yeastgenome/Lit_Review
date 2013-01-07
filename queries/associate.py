@@ -167,7 +167,7 @@ class NoTasksException(FormNotValidException):
 class ReviewCheckedWithoutGenesException(FormNotValidException):
     def __init__(self):
         super(FormNotValidException, self).__init__("If Review is checked with no genes, you cannot check other gene-specific topics.")
-        
+     
 def check_form_validity_and_convert_to_tasks(data):
     tasks = []
     not_repeated = set()
@@ -216,6 +216,55 @@ def check_form_validity_and_convert_to_tasks(data):
         raise ReviewCheckedWithoutGenesException()
     
     return tasks
+   
+#def check_form_validity_and_convert_to_tasks(data):
+#    tasks = []
+#    not_repeated = set()
+#    
+#    for key in data.keys():
+#        if key.endswith('_cb'):
+#            task_key = key[:-3]
+#            genes_key = task_key + '_genes'
+#            comment_key = task_key + '_ta'
+#            
+#            task_type = get_task_type_by_key(task_key)
+#
+#            if genes_key in data:
+#                genes = data[genes_key]
+#                gene_names = genes.replace(',',' ').replace('|',' ').replace(';',' ').replace(':',' ').split()
+#                
+#                #Certain tasks must have genes.
+#                if task_type_is_gene_specific(task_type) and len(gene_names) == 0:
+#                    raise NoGeneNamesException(task_key)
+#            
+#                #A gene name can't be used for both Add_to_db and Reviews.
+#                if task_type == TaskType.ADD_TO_DATABASE or task_type == TaskType.REVIEWS:
+#                    intersection = not_repeated & set(gene_names)
+#                    if len(intersection) > 0:
+#                        raise GeneNameUsedMultipleTimesException(intersection) 
+#                    not_repeated.update(gene_names)
+#            else:
+#                gene_names = [] 
+#                                
+#            task = Task(task_type, gene_names, data[comment_key]) 
+#            tasks.append(task)
+#            
+#    #Must have at least one task.
+#    if len(tasks) == 0:
+#        raise NoTasksException()
+#    
+#    #If Review is checked without genes, the gene specific tasks should not be checked.
+#    gene_specific_checked = False
+#    review_checked_without_genes = False
+#    for task in tasks:
+#        if task.type == TaskType.REVIEWS and len(task.gene_names) == 0:
+#            review_checked_without_genes = True
+#        if task_type_is_gene_specific(task.type):
+#            gene_specific_checked = True
+#    if review_checked_without_genes and gene_specific_checked:
+#        raise ReviewCheckedWithoutGenesException()
+#    
+#    return tasks
     
             
 
