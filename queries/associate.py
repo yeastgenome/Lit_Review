@@ -9,15 +9,15 @@ from queries.move_ref import move_reftemp_to_ref
 
 class Task():
     def __init__(self, task_type, gene_names, comment):
-        if task_type == TaskType.ADD_TO_DATABASE: self.name = 'Gene Link'; self.topic = 'Additional Literature'
-        elif task_type == TaskType.REVIEWS: self.name = 'Gene Link'; self.topic = 'Reviews'
-        elif task_type == TaskType.HTP_PHENOTYPE_DATA: self.name = 'HTP phenotype'; self.topic = 'Omics'
-        elif task_type == TaskType.CLASSICAL_PHENOTYPE_INFORMATION: self.name = 'Classical phenotype information'; self.topic = 'Primary Literature'
-        elif task_type == TaskType.DELAY: self.name = 'Delay'; self.topic = 'Primary Literature'
-        elif task_type == TaskType.GO_INFORMATION: self.name = 'GO information'; self.topic = 'Primary Literature'
-        elif task_type == TaskType.HEADLINE_INFORMATION: self.name = 'Headline information'; self.topic = 'Primary Literature'
-        elif task_type == TaskType.HIGH_PRIORITY: self.name = 'High Priority'; self.topic = 'Primary Literature'
-        elif task_type == TaskType.OTHER_HTP_DATA: self.name = 'Non-phenotype HTP'; self.topic = 'Omics'
+        if task_type == TaskType.ADD_TO_DATABASE: self.ref_curation_name = None; self.topic = 'Additional Literature'
+        elif task_type == TaskType.REVIEWS: self.ref_curation_name = None; self.topic = 'Reviews'
+        elif task_type == TaskType.HTP_PHENOTYPE_DATA: self.ref_curation_name = 'HTP phenotype'; self.topic = 'Omics'
+        elif task_type == TaskType.CLASSICAL_PHENOTYPE_INFORMATION: self.ref_curation_name = 'Classical phenotype information'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.DELAY: self.ref_curation_name = 'Delay'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.GO_INFORMATION: self.ref_curation_name = 'GO information'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.HEADLINE_INFORMATION: self.ref_curation_name = 'Headline information'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.HIGH_PRIORITY: self.ref_curation_name = 'High Priority'; self.topic = 'Primary Literature'
+        elif task_type == TaskType.OTHER_HTP_DATA: self.ref_curation_name = 'Non-phenotype HTP'; self.topic = 'Omics'
         
         self.type = task_type
         self.gene_names = gene_names
@@ -70,9 +70,10 @@ def associate(pubmed_id, name_to_feature, tasks, session=None):
                         
                 ## Create RefCuration objects and add them to the Reference.
                 for feature in features:
-                    curation = RefCuration.as_unique(session, reference_id=reference.id, task=task.name, feature_id=feature.id)
-                    curation.comment = task.comment
-                    reference.curations.append(curation)
+                    if task.ref_curation_name is not None:
+                        curation = RefCuration.as_unique(session, reference_id=reference.id, task=task.ref_curation_name, feature_id=feature.id)
+                        curation.comment = task.comment
+                        reference.curations.append(curation)
                                 
                 ## Create a LitGuide object and attach features to it.
                 lit_guide = LitGuide.as_unique(session, topic=task.topic, reference_id=reference.id)
@@ -84,21 +85,12 @@ def associate(pubmed_id, name_to_feature, tasks, session=None):
                         
             else:   ## no gene name provided
     
-                ## if no gene name provided and "Add to database" was checked,
+                ## if no gene name provided and "Add to database" or "Reviews" was checked,
                 ## no need to add any association
-                if task.type == TaskType.ADD_TO_DATABASE:
-                    continue
-    
-                ## if it is a review, no need to add to ref_curation
-                if task.type == TaskType.REVIEWS:
-                    ## topic = task = 'Reviews'
-                    lit_guide = LitGuide.as_unique(session, reference_id=reference.id, topic=task.topic)
-                    reference.litGuides.append(lit_guide)
-                    continue
-    
-                curation = RefCuration.as_unique(session, task=task.name, reference_id=reference.id, feature_id=None)
-                curation.comment = task.comment
-                reference.curations.append(curation)
+                if task.type != TaskType.ADD_TO_DATABASE and task.type != TaskType.REVIEWS:
+                    curation = RefCuration.as_unique(session, task=task.ref_curation_name, reference_id=reference.id, feature_id=None)
+                    curation.comment = task.comment
+                    reference.curations.append(curation)
                 
                 ## Create a LitGuide object.
                 if task.type == TaskType.HTP_PHENOTYPE_DATA or task.type == TaskType.REVIEWS:
@@ -173,12 +165,13 @@ def check_form_validity_and_convert_to_tasks(data):
     not_repeated = set()
     
     for key in data.keys():
+        print key 
         if key.endswith('_cb'):
             task_key = key[:-3]
             genes_key = task_key + '_genes'
-            comment_key = task_key + '_ta'
+            comment_key = task_key + '_comment'
             
-            task_type = get_task_type_by_key(task_key)
+            task_type = get_task_type_by_key(task_key[18:]) 
 
             if genes_key in data:
                 genes = data[genes_key]
@@ -216,57 +209,6 @@ def check_form_validity_and_convert_to_tasks(data):
         raise ReviewCheckedWithoutGenesException()
     
     return tasks
-   
-#def check_form_validity_and_convert_to_tasks(data):
-#    tasks = []
-#    not_repeated = set()
-#    
-#    for key in data.keys():
-#        if key.endswith('_cb'):
-#            task_key = key[:-3]
-#            genes_key = task_key + '_genes'
-#            comment_key = task_key + '_ta'
-#            
-#            task_type = get_task_type_by_key(task_key)
-#
-#            if genes_key in data:
-#                genes = data[genes_key]
-#                gene_names = genes.replace(',',' ').replace('|',' ').replace(';',' ').replace(':',' ').split()
-#                
-#                #Certain tasks must have genes.
-#                if task_type_is_gene_specific(task_type) and len(gene_names) == 0:
-#                    raise NoGeneNamesException(task_key)
-#            
-#                #A gene name can't be used for both Add_to_db and Reviews.
-#                if task_type == TaskType.ADD_TO_DATABASE or task_type == TaskType.REVIEWS:
-#                    intersection = not_repeated & set(gene_names)
-#                    if len(intersection) > 0:
-#                        raise GeneNameUsedMultipleTimesException(intersection) 
-#                    not_repeated.update(gene_names)
-#            else:
-#                gene_names = [] 
-#                                
-#            task = Task(task_type, gene_names, data[comment_key]) 
-#            tasks.append(task)
-#            
-#    #Must have at least one task.
-#    if len(tasks) == 0:
-#        raise NoTasksException()
-#    
-#    #If Review is checked without genes, the gene specific tasks should not be checked.
-#    gene_specific_checked = False
-#    review_checked_without_genes = False
-#    for task in tasks:
-#        if task.type == TaskType.REVIEWS and len(task.gene_names) == 0:
-#            review_checked_without_genes = True
-#        if task_type_is_gene_specific(task.type):
-#            gene_specific_checked = True
-#    if review_checked_without_genes and gene_specific_checked:
-#        raise ReviewCheckedWithoutGenesException()
-#    
-#    return tasks
-    
-            
 
 def link_paper(pmid, tasks, session=None):
     def f(session):

@@ -6,9 +6,9 @@ Created on Nov 7, 2012
 These classes are populated using SQLAlchemy to connect to the BUD schema on Fasolt. These are the classes representing tables in the
 Reference module of the database schema.
 '''
-from modelOldSchema import Base, EqualityByIDMixin, UniqueMixin
-from modelOldSchema.config import SCHEMA
-from modelOldSchema.feature import Feature
+from model_old_schema import Base, EqualityByIDMixin, UniqueMixin
+from model_old_schema.config import SCHEMA
+from model_old_schema.feature import Feature
 from queries.pubmed import get_medline_data, MedlineJournal
 from sqlalchemy.ext.associationproxy import association_proxy
 from sqlalchemy.orm import relationship, backref

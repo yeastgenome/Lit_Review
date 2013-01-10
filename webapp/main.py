@@ -11,7 +11,7 @@ from flask import Flask, request, render_template, redirect, url_for, flash
 from flask_login import login_required
 from model_old_schema.model import Model
 from queries.associate import LinkPaperException, link_paper, get_ref_summary, \
-    FormNotValidException, check_form_validity_and_convert_to_tasks
+    check_form_validity_and_convert_to_tasks
 from queries.misc import get_reftemps
 from queries.move_ref import move_reftemp_to_refbad, MoveRefException
 from webapp.config import SECRET_KEY, HOST, PORT
@@ -33,19 +33,12 @@ def index():
 def reference():
     form = ManyReferenceForms(request.form)
     
-    if request.method == "POST" and form.validate():
-        return 'Validated!'
-    else:
-        refs = model.execute(get_reftemps()) 
-    
-        print form.data
-        print len(form.reference_forms.entries)
-        for ref in refs:
-            form.create_reference_form(ref.pubmed_id)  
+    refs = model.execute(get_reftemps()) 
+    for ref in refs:
+        form.create_reference_form(ref.pubmed_id)  
         
-        num_of_refs = len(refs) 
-     
-        return render_template('literature_review.html',
+    num_of_refs = len(refs) 
+    return render_template('literature_review.html',
                            ref_list=refs,
                            ref_count=num_of_refs, 
                            form=form)     
@@ -66,32 +59,18 @@ def discard_ref(pmid):
     return redirect(request.args.get("next") or url_for("reference")) 
 
 @app.route("/reference/link/<pmid>", methods=['GET', 'POST'])
-@login_required
-def link_ref(pmid):
-    flash("Trying to link " + pmid)
-    return redirect(request.args.get("next") or url_for("reference"))
-
-    form = ReferenceForm(request.form)
-    if request.method == "POST" and form.validate():
-        print "Validated!"
+@login_required 
+def link_ref(pmid):  
+    if request.method == "POST":
         try:
             tasks = check_form_validity_and_convert_to_tasks(request.form)
-            paper_linked = model.execute(link_paper(pmid, tasks), commit=True)
-            if not paper_linked:
-                raise LinkPaperException('Attempt to link paper unsuccessful. Reason unknown')
+            model.execute(link_paper(pmid, tasks), commit=True)
             
             #Link successful
             summary = model.execute(get_ref_summary(pmid))
             flash("Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<br>" + str(summary))
-        except LinkPaperException as e:
+        except Exception as e:
             flash(e.message)
-        except FormNotValidException as e:
-            flash(e.message)
-    elif not form.validate():
-        pass
-    else:
-        print form.data 
-        form.pubmed_id.data = pmid
 
     return redirect(request.args.get("next") or url_for("reference"))
 

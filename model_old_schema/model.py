@@ -48,10 +48,10 @@ class Model(object):
             session = self.SessionFactory()
             session.user = self.current_user
             return f(session, **kwargs)
-        except:
+        except Exception as e:
             session.rollback()
             traceback.print_exc(file=sys.stdout)
-            return False
+            raise e
         finally:
             if commit:
                 session.commit()

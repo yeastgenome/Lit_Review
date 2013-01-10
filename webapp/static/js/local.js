@@ -2,7 +2,7 @@
  */ 
 
 function show_hide_comment(id, show) {
-	checkbox = document.getElementById(id)
+	checkbox = document.getElementById(id + '_cb')
 	block = document.getElementById(id + '_block')
 	comment_text = document.getElementById(id + '_comment')
 	gene_text = document.getElementById(id + '_genes')
@@ -24,7 +24,7 @@ function validate(pmid) {
 	var mustHaveGenesFull = ["GO information", "Classical phenotype information", "Headline information"];
 	for (var i = 0; i < mustHaveGenes.length; i++) {
 		var key = "_" + mustHaveGenes[i];
-		if (document.getElementById(pmid + key).checked && document.getElementById(pmid + key + "_genes").value == "") {
+		if (document.getElementById(pmid + key + '_cb').checked && document.getElementById(pmid + key + "_genes").value == "") {
 			errors = errors + "Please enter gene names for " + mustHaveGenesFull[i] + ".<br>";
 		}
 	}
@@ -57,7 +57,7 @@ function validate(pmid) {
 	}
 	
 	//If Review is checked without genes, the gene specific tasks should not be checked.
-	if (document.getElementById(pmid + "_review").checked && reviewGeneNames.length == 0) {
+	if (document.getElementById(pmid + "_review_cb").checked && reviewGeneNames.length == 0) {
 		for (var i = 0; i < mustHaveGenes.length; i++) {
 			var key = "_" + mustHaveGenes[i];
 			if (document.getElementById(pmid + key).checked) {
@@ -69,13 +69,12 @@ function validate(pmid) {
 	document.getElementById("validation_error").innerHTML = errors
 	if (errors == "") {
 		document.getElementById("validation_error").style.display = 'none';
+		return true;
 	}
 	else {
 		document.getElementById("validation_error").style.display = 'block';
-
+		return false;
 	}
-	
-	return false;
 }
 
 
