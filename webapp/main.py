@@ -9,13 +9,13 @@ by Matthew Frazier, MIT) for handling the login sessions and everything.
 """
 from flask import Flask, request, render_template, redirect, url_for, flash
 from flask_login import login_required
-from modelOldSchema.model import Model
+from model_old_schema.model import Model
 from queries.associate import LinkPaperException, link_paper, get_ref_summary, \
     FormNotValidException, check_form_validity_and_convert_to_tasks
 from queries.misc import get_reftemps
 from queries.move_ref import move_reftemp_to_refbad, MoveRefException
 from webapp.config import SECRET_KEY, HOST, PORT
-from webapp.forms import LoginForm, ManyReferenceForms
+from webapp.forms import LoginForm, ReferenceForm, ManyReferenceForms
 from webapp.login_handler import confirm_login_lit_review_user, \
     logout_lit_review_user, login_lit_review_user, setup_app, LoginException, \
     LogoutException
@@ -28,23 +28,27 @@ setup_app(app)
 def index():
     return render_template("index.html")
 
-@app.route("/reference")
+@app.route("/reference", methods=['GET', 'POST'])
 @login_required
 def reference():
-    form = ManyReferenceForms(request.form) 
-    form.__refill_pmid_to_reference_form__()
-    refs = model.execute(get_reftemps())
+    form = ManyReferenceForms(request.form)
     
-    print form.pmid_to_reference_form.keys() 
-
-    for ref in refs:
-        form.add_reference_form(ref.pubmed_id) 
+    if request.method == "POST" and form.validate():
+        return 'Validated!'
+    else:
+        refs = model.execute(get_reftemps()) 
     
-    num_of_refs = len(refs) 
-    return render_template('literature_review.html',
+        print form.data
+        print len(form.reference_forms.entries)
+        for ref in refs:
+            form.create_reference_form(ref.pubmed_id)  
+        
+        num_of_refs = len(refs) 
+     
+        return render_template('literature_review.html',
                            ref_list=refs,
                            ref_count=num_of_refs, 
-                           form=form)    
+                           form=form)     
 
 @app.route("/reference/delete/<pmid>", methods=['GET', 'POST'])
 @login_required
@@ -64,8 +68,12 @@ def discard_ref(pmid):
 @app.route("/reference/link/<pmid>", methods=['GET', 'POST'])
 @login_required
 def link_ref(pmid):
-    form = ManyReferenceForms(request.form)
+    flash("Trying to link " + pmid)
+    return redirect(request.args.get("next") or url_for("reference"))
+
+    form = ReferenceForm(request.form)
     if request.method == "POST" and form.validate():
+        print "Validated!"
         try:
             tasks = check_form_validity_and_convert_to_tasks(request.form)
             paper_linked = model.execute(link_paper(pmid, tasks), commit=True)
@@ -79,10 +87,13 @@ def link_ref(pmid):
             flash(e.message)
         except FormNotValidException as e:
             flash(e.message)
-        
-    return redirect(request.args.get("next") or url_for("reference", form=form)) 
+    elif not form.validate():
+        pass
+    else:
+        print form.data 
+        form.pubmed_id.data = pmid
 
-    #return redirect(request.args.get("next") or url_for("reference"))
+    return redirect(request.args.get("next") or url_for("reference"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():

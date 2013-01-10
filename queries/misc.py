@@ -3,14 +3,14 @@ Created on Dec 4, 2012
 
 @author: kpaskov
 '''
-from modelOldSchema.model import get_first, get
+from model_old_schema.model import get_first, get
 
 def get_feature_by_name(name, session=None):
     """
     Get a feature by its name.
     """
     
-    from modelOldSchema.feature import Feature
+    from model_old_schema.feature import Feature
 
     def f(session):
         feature = get_first(Feature, session, name=name.upper())
@@ -23,7 +23,7 @@ def get_feature_by_name(name, session=None):
     
 def get_reftemps(session=None):
     
-    from modelOldSchema.reference import RefTemp
+    from model_old_schema.reference import RefTemp
 
     def f(session):
         return get(RefTemp, session)
@@ -35,7 +35,7 @@ def validate_genes(gene_names, session=None):
     Convert a list of gene_names to a mapping between those gene_names and features.
     """            
     
-    from modelOldSchema.feature import Feature
+    from model_old_schema.feature import Feature
 
     def f(session):
         if gene_names is not None and len(gene_names) > 0:

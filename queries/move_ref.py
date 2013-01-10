@@ -3,14 +3,14 @@ Created on Dec 4, 2012
 
 @author: kpaskov
 '''
-from modelOldSchema.model import get_first
+from model_old_schema.model import get_first
 
 def move_reftemp_to_refbad(pubmed_id, session=None):
     """"
     Remove reference from the RefTemp table and add it to the RefBad table.
     """ 
     
-    from modelOldSchema.reference import RefTemp, RefBad
+    from model_old_schema.reference import RefTemp, RefBad
 
     def f(session):        
         reftemp = get_first(RefTemp, session, pubmed_id=pubmed_id)
@@ -28,7 +28,7 @@ def move_refbad_to_reftemp(pubmed_id, session=None):
     Remove reference from the RefBad table and add it to the RefTemp table.
     """     
     
-    from modelOldSchema.reference import RefTemp, RefBad
+    from model_old_schema.reference import RefTemp, RefBad
     
     def f(session):       
         refbad = get_first(RefBad, session, pubmed_id=pubmed_id)
@@ -45,7 +45,7 @@ def move_reftemp_to_ref(pubmed_id, session=None):
     Remove reference from the RefTemp table, create a full Reference, and add it to the Reference table.
     """
     
-    from modelOldSchema.reference import RefTemp, Reference
+    from model_old_schema.reference import RefTemp, Reference
 
     def f(session):
         reftemp = get_first(RefTemp, session, pubmed_id=pubmed_id)
@@ -62,7 +62,7 @@ def move_ref_to_reftemp(pubmed_id, session=None):
     Remove reference from the Reference table and add it to the RefTemp table.
     """
     
-    from modelOldSchema.reference import RefTemp, Reference
+    from model_old_schema.reference import RefTemp, Reference
 
     def f(session):        
         ref = get_first(Reference, session, pubmed_id=pubmed_id)

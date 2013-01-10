@@ -6,8 +6,8 @@ Created on Oct 18, 2012
 This class is used to perform queries and operations on the corresponding database. In this case, the BUD schema on fasolt.
 
 '''
-from modelOldSchema import Base
-from modelOldSchema.config import DBTYPE, DBHOST, DBNAME
+from model_old_schema import Base
+from model_old_schema.config import DBTYPE, DBHOST, DBNAME
 from sqlalchemy.engine import create_engine
 from sqlalchemy.orm.session import sessionmaker
 import sys

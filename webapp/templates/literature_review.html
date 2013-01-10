@@ -47,8 +47,7 @@
 		<input class="btn" type="submit" value="Discard this paper"\>
 	  </form>
 
-	  <form name="input" action="/reference/link/{{pmid}}" method="post"><ul>
-	    
+	  <form id='form_{{pmid}}' type = "submit" onsubmit="return validate({{pmid}});" action="/reference/link/{{pmid}}" method="post" ><ul>
 	     {{sub_form.high_priority(id=pmid~'_high_priority', onclick="show_hide_comment('"~pmid~"_high_priority')")}} {{sub_form.high_priority.label.text }} <br>
 	     <ul><div id={{pmid~"_high_priority_block"}} style="display:none;">
 	     	{{sub_form.high_priority_comment.label}}
@@ -114,7 +113,7 @@
 	     </div></ul>
     
 	  </ul>
-		{{sub_form.link(class='btn')}}
+	  	{{sub_form.link(class="btn")}}
 
 	</form>
 	  </div>  <!-- end of a pubmed section -->

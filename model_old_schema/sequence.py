@@ -6,8 +6,8 @@ Created on Oct 25, 2012
 These classes are populated using SQLAlchemy to connect to the BUD schema on Fasolt. These are the classes representing tables in the
 Sequence module of the database schema.
 '''
-from modelOldSchema import Base, EqualityByIDMixin
-from modelOldSchema.config import SCHEMA
+from model_old_schema import Base, EqualityByIDMixin
+from model_old_schema.config import SCHEMA
 from sqlalchemy.schema import Column, ForeignKey
 from sqlalchemy.types import Integer, String, Date
 

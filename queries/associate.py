@@ -3,7 +3,7 @@ Created on Dec 4, 2012
 
 @author: kpaskov
 '''
-from modelOldSchema.model import get_first
+from model_old_schema.model import get_first
 from queries.misc import validate_genes
 from queries.move_ref import move_reftemp_to_ref
 
@@ -55,7 +55,7 @@ def associate(pubmed_id, name_to_feature, tasks, session=None):
     Associate a Reference with LitGuide entries.
     """          
     
-    from modelOldSchema.reference import Reference, RefCuration, LitGuide
+    from model_old_schema.reference import Reference, RefCuration, LitGuide
               
     def f(session):
         reference = get_first(Reference, session, pubmed_id=pubmed_id)
@@ -109,7 +109,7 @@ def associate(pubmed_id, name_to_feature, tasks, session=None):
 
 def get_ref_summary(pmid, session=None):
     def f(session):
-        from modelOldSchema.reference import Reference
+        from model_old_schema.reference import Reference
 
         ref = get_first(Reference, session, pubmed_id=pmid)
         message = "RefCurations:<br>"

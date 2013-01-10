@@ -3,23 +3,24 @@ Created on Dec 19, 2012
 
 @author: kpaskov
 '''
-
-from wtforms import Form, TextField, validators
 from wtforms.fields.core import BooleanField, FieldList, FormField
-from wtforms.fields.simple import PasswordField, TextAreaField, SubmitField
-from wtforms.validators import ValidationError
+from wtforms.fields.simple import TextField, PasswordField, SubmitField, \
+    HiddenField, TextAreaField
+from wtforms.form import Form
+from wtforms.validators import ValidationError, Required
+
 
 class LoginForm(Form):
-    username = TextField('Username:', [validators.Required(message='Please log in.')])
+    username = TextField('Username:', [Required(message='Please log in.')])
     password = PasswordField('Password:') 
     login = SubmitField('Login')
 
 def validate_go_genes(form, field):
-    if form.go.data and form.go_genes.data == "":
+    if form.go_genes.data == "":
         raise ValidationError("Please enter gene names for " + form.go.label.text)
     
 class ReferenceForm(Form):
-    pubmed_id = TextField()
+    pubmed_id = HiddenField() 
     
     high_priority = BooleanField('High Priority')
     high_priority_comment = TextAreaField('Comment:')
@@ -30,7 +31,7 @@ class ReferenceForm(Form):
     other = BooleanField("Other HTP data (adds the 'Omics' topic")
     other_comment = TextAreaField('Comment:')
     go = BooleanField('GO information')
-    go_genes = TextAreaField('Link to these genes and add paper to Primary Literature:', [validators.Required(message='Must have something'), validate_go_genes])
+    go_genes = TextAreaField('Link to these genes and add paper to Primary Literature:', [Required(message='Must enter something.')])
     go_comment = TextAreaField('Comment:')
     phenotype = BooleanField('Classical phenotype information')
     phenotype_genes = TextAreaField('Link to these genes and add paper to Primary Literature:')
@@ -44,30 +45,31 @@ class ReferenceForm(Form):
     add_to_db = BooleanField('Add to database')
     add_to_db_genes = TextAreaField('Optionally link to these genes and add paper to Additional Literature:')
     add_to_db_comment = TextAreaField('Comment:')
+    
     link = SubmitField('Link checked tags/topics/genes to this paper')
     
 class ManyReferenceForms(Form):
     reference_forms = FieldList(FormField(ReferenceForm))
+    pmids = {}
     
-    pmid_to_reference_form = None
+    def fill_pmids_list(self):
+        pmids = {}
+        for sub_form in self.reference_forms.entries:
+            pmids[sub_form.data["pubmed_id"]] = sub_form
     
-    def __refill_pmid_to_reference_form__(self):
-        self.pmid_to_reference_form = {}
-        for sub_form in self.reference_forms:
-            pubmed_id = sub_form.pubmed_id
-            self.pmid_to_reference_form[pubmed_id] = sub_form
-    
-    def add_reference_form(self, pmid):
-        if self.pmid_to_reference_form is None:
-            self.__refill_pmid_to_reference_form__()
+    def create_reference_form(self, pmid):
+        if not len(self.pmids) == len(self.reference_forms.entries):
+            self.fill_pmids_list()
             
-        if pmid not in self.pmid_to_reference_form:
-            self.reference_forms.append_entry({'pubmed_id', pmid})
-            self.pmid_to_reference_form[pmid] = self.reference_forms[-1]
+        if pmid not in self.pmids:
+            self.reference_forms.append_entry()
+            sub_form = self.reference_forms.entries[-1]
+            sub_form.pubmed_id.data = pmid 
+            self.pmids[pmid] = sub_form
     
     def get_reference_form(self, pmid):
-        if self.pmid_to_reference_form is None:
-            self.__refill_pmid_to_reference_form__()
+        if not len(self.pmids) == len(self.reference_forms.entries):
+            self.fill_pmids_list()
             
-        return self.pmid_to_reference_form[pmid]
+        return self.pmids[pmid] 
 

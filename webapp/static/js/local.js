@@ -1,5 +1,4 @@
-/* this function will call the delete url to discard the paper from the database 
- * and replace the section with the message returned from the server.
+/* Toggles the comment and gene entry areas to appear and disappear based upon whether or not the 
  */ 
 
 function show_hide_comment(id, show) {
@@ -15,6 +14,68 @@ function show_hide_comment(id, show) {
 	else {
 		block.style.display = 'block';
 	}
+}
+
+function validate(pmid) {
+	errors = "";
+	
+	//Certain tasks must have genes.
+	var mustHaveGenes = ["go", "phenotype", "headline"];
+	var mustHaveGenesFull = ["GO information", "Classical phenotype information", "Headline information"];
+	for (var i = 0; i < mustHaveGenes.length; i++) {
+		var key = "_" + mustHaveGenes[i];
+		if (document.getElementById(pmid + key).checked && document.getElementById(pmid + key + "_genes").value == "") {
+			errors = errors + "Please enter gene names for " + mustHaveGenesFull[i] + ".<br>";
+		}
+	}
+	
+	//A gene name can't be used for both Add_to_db and Reviews
+	var addToDBGeneNames = document.getElementById(pmid + "_add_to_db_genes").value.replace(new RegExp(",", "gm"), " ").replace(/\|/g, " ").replace(new RegExp(";", "gm"), " ").replace(new RegExp(":", "gm"), " ").split(" ");
+	var reviewGeneNames = document.getElementById(pmid + "_review_genes").value.replace(new RegExp(",", "gm"), " ").replace(/\|/g, " ").replace(new RegExp(";", "gm"), " ").replace(new RegExp(":", "gm"), " ").split(" ");
+	
+	addToDBGeneNames = addToDBGeneNames.filter(function(n) {
+		return n.length != 0;
+	})
+	reviewGeneNames = reviewGeneNames.filter(function(n) {
+		return n.length != 0;
+	})
+	
+	filtered = addToDBGeneNames.filter(function(n) {
+        return reviewGeneNames.indexOf(n) != -1;
+    });
+	
+	if (filtered.length > 0) {
+		errors = errors + "The following gene name(s) were used for two different literature topics: " + filtered + ".<br>";
+	}
+	
+	//The form must have at least one checkbox checked.
+	var checked = $("input[@type=checkbox]:checked"); //find all checked checkboxes + radio buttons  
+	var nbChecked = checked.size();
+	
+	if (nbChecked == 0) {
+		errors = errors + "You have to check something before pressing the 'Link...' button.<br>";
+	}
+	
+	//If Review is checked without genes, the gene specific tasks should not be checked.
+	if (document.getElementById(pmid + "_review").checked && reviewGeneNames.length == 0) {
+		for (var i = 0; i < mustHaveGenes.length; i++) {
+			var key = "_" + mustHaveGenes[i];
+			if (document.getElementById(pmid + key).checked) {
+				errors = errors + "If Review is checked with no genes, you cannot check " + mustHaveGenesFull[i] + ".<br>";
+			}
+		}
+	}
+
+	document.getElementById("validation_error").innerHTML = errors
+	if (errors == "") {
+		document.getElementById("validation_error").style.display = 'none';
+	}
+	else {
+		document.getElementById("validation_error").style.display = 'block';
+
+	}
+	
+	return false;
 }
 
 

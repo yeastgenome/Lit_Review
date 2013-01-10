@@ -1,4 +1,4 @@
-from modelOldSchema.config import SCHEMA
+from model_old_schema.config import SCHEMA
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.schema import MetaData
 
