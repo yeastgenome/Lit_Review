@@ -2,7 +2,8 @@ from model_old_schema.model import get_first
 from model_old_schema.test_model import ModelCreationMixin, test_validity, \
     validate_feature, validate_reftemp, validate_refbad, validate_ref
 from queries.associate import associate, Task, TaskType
-from queries.misc import get_feature_by_name, get_reftemps, validate_genes
+from queries.misc import get_feature_by_name, get_reftemps, validate_genes, \
+    get_recent_history
 from queries.move_ref import move_refbad_to_reftemp, move_reftemp_to_refbad, \
     move_reftemp_to_ref, move_ref_to_reftemp
 from unittest.suite import TestSuite
@@ -35,6 +36,16 @@ class TestMiscQueries(ModelCreationMixin):
         for i in range(0, len(gene_names)):
             self.assertEqual(name_to_feature[gene_names[i]].id, feature_ids[i])
             
+    def test_get_recent_history(self):
+        def f(session):
+            h = get_recent_history(session=session)
+            for key, event in h.items():
+                print key
+                print event.ref_count
+                print event.refbad_count
+            
+        self.model.execute(f, commit=False)
+   
 class TestMoveRefQueries(ModelCreationMixin):
         
     def test_move_refbad_to_reftemp(self, pubmed_id=16830189):

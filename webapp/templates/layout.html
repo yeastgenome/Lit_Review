@@ -7,8 +7,8 @@
 <!-- Sets active_page variable for active tab -->
 {% set active_page = "index" %}
 
-<!-- Prints flashed messages from Flask -->
-{% for message in get_flashed_messages() %}
+<!-- Prints successful flashed messages from Flask -->
+{% for message in get_flashed_messages(category_filter=["success"]) %}
     <div class=alert>
     {% for n in message.split("<br>") %}
     	{{ n }} <br>
@@ -16,7 +16,16 @@
     </div>
 {% endfor %}
 
-<!-- Prints errors from any forms. -->
+<!-- Prints error and login flashed messages from Flask -->
+{% for message in get_flashed_messages(category_filter=["error", "login"]) %}
+    <div class=alert>
+    {% for n in message.split("<br>") %}
+    	{{ n }} <br>
+    {% endfor %}
+    </div>
+{% endfor %}
+
+<!-- Prints errors from any forms. 
 {% if form and form.errors %}
 	<div class=alert>
     	{% for field_name, field_errors in form.errors|dictsort if field_errors %}
@@ -26,6 +35,7 @@
     	{% endfor %}
     </div>
 {% endif %}
+-->
 
 <!-- Prints client-side form validation errors. -->
 <div id='validation_error' class=alert style="display:none;"></div>

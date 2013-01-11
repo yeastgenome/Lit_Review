@@ -10,12 +10,12 @@ by Matthew Frazier, MIT) for handling the login sessions and everything.
 from flask import Flask, request, render_template, redirect, url_for, flash
 from flask_login import login_required
 from model_old_schema.model import Model
-from queries.associate import LinkPaperException, link_paper, get_ref_summary, \
+from queries.associate import link_paper, get_ref_summary, \
     check_form_validity_and_convert_to_tasks
-from queries.misc import get_reftemps
+from queries.misc import get_reftemps, get_recent_history
 from queries.move_ref import move_reftemp_to_refbad, MoveRefException
 from webapp.config import SECRET_KEY, HOST, PORT
-from webapp.forms import LoginForm, ReferenceForm, ManyReferenceForms
+from webapp.forms import LoginForm, ManyReferenceForms
 from webapp.login_handler import confirm_login_lit_review_user, \
     logout_lit_review_user, login_lit_review_user, setup_app, LoginException, \
     LogoutException
@@ -26,7 +26,20 @@ setup_app(app)
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    labels = []
+    data = []
+    test = "Nothing"
+    if model.is_connected():
+        recent_history = model.execute(get_recent_history())
+        sorted_history = recent_history.items()
+        sorted_history.sort()
+        
+        for k, v in sorted_history:
+            labels.append(k.strftime("%m/%d"))
+            data.append([v.refbad_count, v.ref_count])
+        
+        test = data[0][0]
+    return render_template("index.html", history_labels=labels, history_data=data, test=500)
 
 @app.route("/reference", methods=['GET', 'POST'])
 @login_required
@@ -53,9 +66,9 @@ def discard_ref(pmid):
                 raise MoveRefException('An error occurred when deleting the reference for pmid=" + pmid + " from the database.')
             
             #Reference deleted
-            flash("Reference for pmid=" + pmid + " has been removed from the database!")
+            flash("Reference for pmid=" + pmid + " has been removed from the database!", 'success')
         except MoveRefException as e:
-            flash(e.message)
+            flash(e.message, 'error')
     return redirect(request.args.get("next") or url_for("reference")) 
 
 @app.route("/reference/link/<pmid>", methods=['GET', 'POST'])
@@ -68,9 +81,9 @@ def link_ref(pmid):
             
             #Link successful
             summary = model.execute(get_ref_summary(pmid))
-            flash("Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<br>" + str(summary))
+            flash("Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<br>" + str(summary), 'success')
         except Exception as e:
-            flash(e.message)
+            flash(e.message, 'error')
 
     return redirect(request.args.get("next") or url_for("reference"))
 
@@ -88,11 +101,11 @@ def login():
                 raise LoginException('Login unsuccessful. Reason unknown.')
             
             #Login successful.
-            flash("Logged in!")
+            flash("Logged in!", 'login')
             return redirect(request.args.get("next") or url_for("index"))
         
         except LoginException as e:
-            flash(e.message)
+            flash(e.message, 'login')
     return render_template("login.html", form=form)
 
 @app.route("/reauth", methods=["GET", "POST"])
@@ -100,7 +113,7 @@ def login():
 def reauth():
     if request.method == "POST":
         output = confirm_login_lit_review_user()
-        flash(output)
+        flash(output, 'login')
         return redirect(url_for("index")) 
     return render_template("reauth.html")
 
@@ -112,10 +125,10 @@ def logout():
             raise LogoutException('Logout unsuccessful. Reason unknown.')
         
         #Logout successful
-        flash('Logged out.')
+        flash('Logged out.', 'login')
         
     except LogoutException as e:
-        flash(e.message)
+        flash(e.message, 'login')
     return redirect(url_for("index"))
 
 

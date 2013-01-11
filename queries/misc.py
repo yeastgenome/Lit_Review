@@ -4,6 +4,7 @@ Created on Dec 4, 2012
 @author: kpaskov
 '''
 from model_old_schema.model import get_first, get
+import datetime
 
 def get_feature_by_name(name, session=None):
     """
@@ -59,5 +60,46 @@ def validate_genes(gene_names, session=None):
             return name_to_feature
         else:
             return {}
+        
+    return f if session is None else f(session)
+
+class HistoryEntry():
+    def __init__(self, date):
+        self.date = date
+        self.ref_count = 0
+        self.refbad_count = 0
+        
+    def inc_ref_count(self):
+        self.ref_count = self.ref_count + 1
+    
+    def inc_refbad_count(self):
+        self.refbad_count = self.refbad_count + 1
+    
+
+def get_recent_history(session=None):
+    """
+    Get a user's recent history.
+    """       
+    from model_old_schema.reference import Reference, RefBad
+
+    def f(session):
+        refs = get(Reference, created_by=session.user, session=session)
+        refbads = get(RefBad, created_by=session.user, session=session)
+        
+        history = {}
+        today = datetime.date.today()
+        for i in range(10):
+            new_date = today - datetime.timedelta(days=i)
+            history[new_date] = HistoryEntry(new_date)
+        
+        for ref in refs:
+            if ref.date_created in history:
+                history[ref.date_created].inc_ref_count()
+                
+        for refbad in refbads:
+            if refbad.date_created in history:
+                history[refbad.date_created].inc_refbad_count()
+                
+        return history
         
     return f if session is None else f(session)
