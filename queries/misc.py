@@ -83,8 +83,9 @@ def get_recent_history(session=None):
     from model_old_schema.reference import Reference, RefBad
 
     def f(session):
-        refs = get(Reference, created_by=session.user, session=session)
-        refbads = get(RefBad, created_by=session.user, session=session)
+        min_date = datetime.date.today() - datetime.timedelta(days=10)
+        refs = session.query(Reference).filter_by(created_by = session.user).filter(Reference.date_created >= min_date)
+        refbads = session.query(RefBad).filter_by(created_by = session.user).filter(Reference.date_created >= min_date)
         
         history = {}
         today = datetime.date.today()

@@ -32,7 +32,7 @@ def index():
     if model.is_connected():
         recent_history = model.execute(get_recent_history())
         sorted_history = recent_history.items()
-        sorted_history.sort()
+        sorted_history.sort() 
         
         for k, v in sorted_history:
             labels.append(k.strftime("%m/%d"))
