@@ -93,7 +93,7 @@ def login():
     if request.method == "POST" and form.validate():
         username = form.username.data
         password = form.password.data
-        remember = True
+        remember = False
         
         try:
             logged_in = login_lit_review_user(username, password, model, remember)
