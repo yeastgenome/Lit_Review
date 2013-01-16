@@ -29,7 +29,7 @@ tests_require = [
 
 setup(
     name='LitReview',
-    version='0.1dev',
+    version='0.7dev',
     description='Literature curation tool.',
     long_description=README,
     author='Kelley Paskov',
