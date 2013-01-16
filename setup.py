@@ -29,12 +29,12 @@ tests_require = [
 
 setup(
     name='LitReview',
-    version='0.7dev',
+    version='0.2dev',
     description='Literature curation tool.',
     long_description=README,
     author='Kelley Paskov',
     author_email='kpaskov@stanford.edu',
-    url="http://cherry-vm13.stanford.edu:5000",
+    url="http://cherry-vm13.stanford.edu",
     license="MIT",
     install_requires=install_requires,
     packages=find_packages('src'),

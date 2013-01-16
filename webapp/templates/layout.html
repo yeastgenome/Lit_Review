@@ -35,6 +35,17 @@
     </div>
 {% endfor %}
 
+<!-- Prints errors from any forms.  -->
+{% if form and form.errors %}
+	<div class=alert>
+    	{% for field_name, field_errors in form.errors|dictsort if field_errors %}
+            {% for error in field_errors %}
+    			{{ error }} <br>
+    		{% endfor %}
+    	{% endfor %}
+    </div>
+{% endif %}
+
 <!-- Prints client-side form validation errors. -->
 <div id='validation_error' class="alert alert-error" style="display:none;"></div>
   

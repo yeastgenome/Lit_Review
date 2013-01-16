@@ -29,7 +29,6 @@ app.debug = True
 def index():
     labels = []
     data = []
-    test = "Nothing"
     if model.is_connected():
         recent_history = model.execute(get_recent_history())
         sorted_history = recent_history.items()
@@ -39,8 +38,7 @@ def index():
             labels.append(k.strftime("%m/%d"))
             data.append([v.refbad_count, v.ref_count])
         
-        test = data[0][0]
-    return render_template("index.html", history_labels=labels, history_data=data, test=500)
+    return render_template("index.html", history_labels=labels, history_data=data)
 
 @app.route("/reference", methods=['GET', 'POST'])
 @login_required

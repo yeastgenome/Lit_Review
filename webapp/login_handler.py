@@ -41,10 +41,17 @@ def setup_app(app):
         
 
 def login_lit_review_user(username, password, model, remember):
+    import os
+
     try:
         model.connect(username, password)
     except Exception as e:
-        raise LoginException(e.strerror)
+        path = os.getenv('LD_LIBRARY_PATH')
+        if path is None:
+            output = ". LD_LIBRARY_PATH has not been set."
+        else:
+            output = ". LD_LIBRARY_PATH = " + path
+        raise LoginException(str(e) + output)
     
     if not model.is_connected():
         raise BadUsernamePasswordException()

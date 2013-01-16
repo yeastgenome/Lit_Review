@@ -16,6 +16,12 @@ import traceback
 # imports of model classes from model.feature, model.taxonomy, etc are done as needed, since these imports are
 # not available until AFTER the metadata is bound to the engine.
 
+class DBConnectionLostException(Exception):
+    def __init__(self, message):
+        self.message = message
+    def __str__(self):
+        return repr(self.message)
+
 class Model(object):
     '''
     This class acts as a divider between the Oracle back-end and the application. In order to pull information
@@ -44,18 +50,21 @@ class Model(object):
             return False
         
     def execute(self, f, commit=False, **kwargs):
-        try:
-            session = self.SessionFactory()
-            session.user = self.current_user
-            return f(session, **kwargs)
-        except Exception as e:
-            session.rollback()
-            traceback.print_exc(file=sys.stdout)
-            raise e
-        finally:
-            if commit:
-                session.commit()
-            session.close()
+        if self.is_connected():
+            try:
+                session = self.SessionFactory()
+                session.user = self.current_user
+                return f(session, **kwargs)
+            except Exception as e:
+                session.rollback()
+                traceback.print_exc(file=sys.stdout)
+                raise e
+            finally:
+                if commit:
+                    session.commit()
+                session.close()
+        else:
+            raise DBConnectionLostException()
 
 def get(model, session=None, **kwargs):
     def f(session):
