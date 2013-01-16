@@ -23,6 +23,7 @@ from webapp.login_handler import confirm_login_lit_review_user, \
 app = Flask(__name__)
 model = Model()
 setup_app(app)
+app.debug = True
 
 @app.route("/")
 def index():
@@ -66,7 +67,7 @@ def discard_ref(pmid):
                 raise MoveRefException('An error occurred when deleting the reference for pmid=" + pmid + " from the database.')
             
             #Reference deleted
-            flash("Reference for pmid=" + pmid + " has been removed from the database!", 'success')
+            flash("Reference for pmid=" + pmid + " has been removed from the database.", 'success')
         except MoveRefException as e:
             flash(e.message, 'error')
     return redirect(request.args.get("next") or url_for("reference")) 

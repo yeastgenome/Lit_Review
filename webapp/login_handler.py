@@ -43,9 +43,10 @@ def setup_app(app):
 def login_lit_review_user(username, password, model, remember):
     try:
         model.connect(username, password)
-        if not model.is_connected():
-            raise Exception()
-    except Exception:
+    except Exception as e:
+        raise LoginException(e.strerror)
+    
+    if not model.is_connected():
         raise BadUsernamePasswordException()
     
     if username in USER_NAMES:
