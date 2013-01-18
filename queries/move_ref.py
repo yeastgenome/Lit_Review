@@ -5,6 +5,16 @@ Created on Dec 4, 2012
 '''
 from model_old_schema.model import get_first
 
+class MoveRefException(Exception):
+    def __init__(self, message):
+        self.message = message
+    def __str__(self):
+        return repr(self.message)
+    
+class RefDoesNotExistException(MoveRefException):
+    def __init__(self, pubmed_id):
+        super(MoveRefException, self).__init__('Reference pubmed_id = ' + pubmed_id + ' has already been linked or discarded.')
+
 def move_reftemp_to_refbad(pubmed_id, session=None):
     """"
     Remove reference from the RefTemp table and add it to the RefBad table.
@@ -14,6 +24,8 @@ def move_reftemp_to_refbad(pubmed_id, session=None):
 
     def f(session):        
         reftemp = get_first(RefTemp, session, pubmed_id=pubmed_id)
+        if reftemp is None:
+            raise RefDoesNotExistException(pubmed_id)
         refbad = RefBad.as_unique(session, pubmed_id=pubmed_id)
         
         session.add(refbad)
@@ -32,6 +44,8 @@ def move_refbad_to_reftemp(pubmed_id, session=None):
     
     def f(session):       
         refbad = get_first(RefBad, session, pubmed_id=pubmed_id)
+        if refbad is None:
+            raise RefDoesNotExistException(pubmed_id)
         reftemp = RefTemp.as_unique(session, pubmed_id = pubmed_id)
             
         session.add(reftemp)
@@ -49,6 +63,8 @@ def move_reftemp_to_ref(pubmed_id, session=None):
 
     def f(session):
         reftemp = get_first(RefTemp, session, pubmed_id=pubmed_id)
+        if reftemp is None:
+            raise RefDoesNotExistException(pubmed_id)
         ref = Reference.as_unique(session, pubmed_id=pubmed_id)
             
         session.add(ref)
@@ -66,6 +82,8 @@ def move_ref_to_reftemp(pubmed_id, session=None):
 
     def f(session):        
         ref = get_first(Reference, session, pubmed_id=pubmed_id)
+        if ref is None:
+            raise RefDoesNotExistException(pubmed_id)
         reftemp = RefTemp.as_unique(session, pubmed_id=pubmed_id)
             
         session.add(reftemp)
@@ -73,9 +91,3 @@ def move_ref_to_reftemp(pubmed_id, session=None):
         return True
     
     return f if session is None else f(session)
-
-class MoveRefException(Exception):
-    def __init__(self, message):
-        self.message = message
-    def __str__(self):
-        return repr(self.message)

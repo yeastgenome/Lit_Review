@@ -8,7 +8,7 @@ by Matthew Frazier, MIT) for handling the login sessions and everything.
 
 """
 from flask import Flask, request, render_template, redirect, url_for, flash
-from flask_login import login_required
+from flask_login import login_required, current_user
 from model_old_schema.model import Model
 from queries.associate import link_paper, get_ref_summary, \
     check_form_validity_and_convert_to_tasks
@@ -18,7 +18,7 @@ from webapp.config import SECRET_KEY, HOST, PORT
 from webapp.forms import LoginForm, ManyReferenceForms
 from webapp.login_handler import confirm_login_lit_review_user, \
     logout_lit_review_user, login_lit_review_user, setup_app, LoginException, \
-    LogoutException
+    LogoutException, check_for_other_users
 
 app = Flask(__name__)
 model = Model()
@@ -29,27 +29,38 @@ app.debug = True
 def index():
     labels = []
     data = []
-    if model.is_connected():
-        recent_history = model.execute(get_recent_history())
+    try:
+        recent_history = model.execute(get_recent_history(), current_user.name)
         sorted_history = recent_history.items()
         sorted_history.sort() 
         
         for k, v in sorted_history:
             labels.append(k.strftime("%m/%d"))
             data.append([v.refbad_count, v.ref_count])
-        
+              
+    except Exception as e:
+        flash(str(e), 'error')
+
     return render_template("index.html", history_labels=labels, history_data=data)
 
 @app.route("/reference", methods=['GET', 'POST'])
 @login_required
 def reference():
     form = ManyReferenceForms(request.form)
+    refs=[]
+    num_of_refs=0
+    try:
+        check_for_other_users(current_user.name)
     
-    refs = model.execute(get_reftemps()) 
-    for ref in refs:
-        form.create_reference_form(ref.pubmed_id)  
+        refs = model.execute(get_reftemps(), current_user.name) 
+        for ref in refs:
+            form.create_reference_form(ref.pubmed_id)  
         
-    num_of_refs = len(refs) 
+        num_of_refs = len(refs) 
+    
+    except Exception as e:
+        flash(str(e), 'error')
+        
     return render_template('literature_review.html',
                            ref_list=refs,
                            ref_count=num_of_refs, 
@@ -58,67 +69,82 @@ def reference():
 @app.route("/reference/delete/<pmid>", methods=['GET', 'POST'])
 @login_required
 def discard_ref(pmid):
-    if request.method == "POST":
-        try:
-            moved = model.execute(move_reftemp_to_refbad(pmid), commit=True)
+    try:
+        check_for_other_users(current_user.name)
+        if request.method == "POST":
+            moved = model.execute(move_reftemp_to_refbad(pmid), current_user.name, commit=True)
             if not moved:
                 raise MoveRefException('An error occurred when deleting the reference for pmid=" + pmid + " from the database.')
             
             #Reference deleted
             flash("Reference for pmid=" + pmid + " has been removed from the database.", 'success')
-        except MoveRefException as e:
-            flash(e.message, 'error')
+    
+    except Exception as e:
+        flash(e.message, 'error')
+        
     return redirect(request.args.get("next") or url_for("reference")) 
 
 @app.route("/reference/link/<pmid>", methods=['GET', 'POST'])
 @login_required 
-def link_ref(pmid):  
-    if request.method == "POST":
-        try:
+def link_ref(pmid):
+    try:
+        check_for_other_users(current_user.name)
+        if request.method == "POST":
             tasks = check_form_validity_and_convert_to_tasks(request.form)
-            model.execute(link_paper(pmid, tasks), commit=True)
+            model.execute(link_paper(pmid, tasks), current_user.name, commit=True)
             
             #Link successful
-            summary = model.execute(get_ref_summary(pmid))
+            summary = model.execute(get_ref_summary(pmid), current_user.name)
             flash("Reference for pmid = " + pmid + " has been added into the database and associated with the following data:<br>" + str(summary), 'success')
-        except Exception as e:
-            flash(e.message, 'error')
+    
+    except Exception as e:
+        flash(e.message, 'error')
 
     return redirect(request.args.get("next") or url_for("reference"))
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     form = LoginForm(request.form)
-    if request.method == "POST" and form.validate():
-        username = form.username.data
-        password = form.password.data
-        remember = False
-        
-        try:
+    try:
+        if request.method == "POST" and form.validate():
+            username = form.username.data
+            password = form.password.data
+            remember = False
+            
+            check_for_other_users(username)
+
             logged_in = login_lit_review_user(username, password, model, remember)
             if not logged_in:
                 raise LoginException('Login unsuccessful. Reason unknown.')
             
             #Login successful.
             flash("Logged in!", 'login')
+            current_user.login()
             return redirect(request.args.get("next") or url_for("index"))
         
-        except LoginException as e:
-            flash(e.message, 'login')
+    except Exception as e:
+        flash(e.message, 'error')
+        
     return render_template("login.html", form=form)
 
 @app.route("/reauth", methods=["GET", "POST"])
 @login_required
 def reauth():
-    if request.method == "POST":
-        output = confirm_login_lit_review_user()
-        flash(output, 'login')
-        return redirect(url_for("index")) 
+    try:
+        if request.method == "POST":
+            output = confirm_login_lit_review_user()
+            flash(output, 'login')
+            return redirect(url_for("index")) 
+        
+    except Exception as e:
+        flash(e.message, 'error')
+        
     return render_template("reauth.html")
 
 @app.route("/logout")
 def logout():
     try:
+        current_user.logout()
         logged_out = logout_lit_review_user()
         if not logged_out:
             raise LogoutException('Logout unsuccessful. Reason unknown.')
@@ -126,11 +152,13 @@ def logout():
         #Logout successful
         flash('Logged out.', 'login')
         
-    except LogoutException as e:
-        flash(e.message, 'login')
+    except Exception as e:
+        flash(e.message, 'error')
+        
     return redirect(url_for("index"))
 
 
 if __name__ == "__main__":
     app.secret_key = SECRET_KEY
     app.run(host=HOST, port=PORT, debug=True) 
+    

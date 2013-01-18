@@ -17,8 +17,8 @@ import traceback
 # not available until AFTER the metadata is bound to the engine.
 
 class DBConnectionLostException(Exception):
-    def __init__(self, message):
-        self.message = message
+    def __init__(self):
+        self.message = "The connection to the database has been lost. Please try logging in again."
     def __str__(self):
         return repr(self.message)
 
@@ -37,7 +37,6 @@ class Model(object):
         self.engine = create_engine("%s://%s:%s@%s/%s" % (DBTYPE, username, password, DBHOST, DBNAME), convert_unicode=True, pool_recycle=3600)
         Base.metadata.bind = self.engine
         self.SessionFactory = sessionmaker(bind=self.engine)
-        self.current_user = username.upper()
 
         return
     
@@ -49,22 +48,22 @@ class Model(object):
         except:                 
             return False
         
-    def execute(self, f, commit=False, **kwargs):
-        if self.is_connected():
-            try:
-                session = self.SessionFactory()
-                session.user = self.current_user
-                return f(session, **kwargs)
-            except Exception as e:
-                session.rollback()
-                traceback.print_exc(file=sys.stdout)
-                raise e
-            finally:
-                if commit:
-                    session.commit()
-                session.close()
-        else:
+    def execute(self, f, username, commit=False, **kwargs):
+        if not self.is_connected():
             raise DBConnectionLostException()
+        try:
+            session = self.SessionFactory()
+            session.user = username.upper()
+            response = f(session, **kwargs)
+            if commit:
+                session.commit()
+            return response
+        except Exception as e:
+            session.rollback()
+            traceback.print_exc(file=sys.stdout)
+            raise e
+        finally:
+            session.close()
 
 def get(model, session=None, **kwargs):
     def f(session):

@@ -8,11 +8,8 @@
   		<div class=metanav>
   			{% if current_user.is_authenticated() %}
     			Welcome, {{ current_user.name }} to the new Literature Review Curation tool.
-  			{% else %}
-    			Welcome to the new Literature Review Curation tool. You are not logged in. Please <a href="{{ url_for('reference') }}">log in</a>.
-  			{% endif %}
-  			
-  	<head>
+    			
+    			  	<head>
     <script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script type="text/javascript">
       google.load("visualization", "1", {packages:["corechart"]});
@@ -51,6 +48,13 @@
   <body>
     <div id="chart_div" style="width:100%; height: 500px;"></div>
   </body>
+  
+  			{% else %}
+    			Welcome to the new Literature Review Curation tool. You are not logged in. Please <a href="{{ url_for('reference') }}">log in</a>.
+  			{% endif %}
+
+
   		</div>
   </div>
+
 {% endblock body %}

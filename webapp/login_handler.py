@@ -7,7 +7,8 @@ by Matthew Frazier, MIT) for handling the login sessions and everything.
 """
 from flask_login import LoginManager, login_user, logout_user, confirm_login, \
     current_user
-from webapp.config import Anonymous, USER_NAMES, USERS
+from webapp.config import USER_NAMES, USERS
+from webapp.users import Anonymous
 
 login_manager = LoginManager()
 login_manager.anonymous_user = Anonymous
@@ -26,6 +27,10 @@ class NotOnListException(LoginException):
     def __init__(self):
         super(LoginException, self).__init__('You are not allowed to use this interface. Contact sgd-programmers to add your name to the list.')
         
+class AnotherUserIsUsingException(LoginException):
+    def __init__(self, other_user, last_alive):
+        super(LoginException, self).__init__('Sorry, ' + other_user + ' is already using this interface. ' + other_user + ' was last active at ' + str(last_alive) + '.')
+        
 class BadUsernamePasswordException(LoginException):
     def __init__(self):
         super(LoginException, self).__init__('You typed in an invalid username/password')
@@ -41,23 +46,19 @@ def setup_app(app):
         
 
 def login_lit_review_user(username, password, model, remember):
-    import os
-
     try:
         model.connect(username, password)
     except Exception as e:
-        path = os.getenv('LD_LIBRARY_PATH')
-        if path is None:
-            output = ". LD_LIBRARY_PATH has not been set."
-        else:
-            output = ". LD_LIBRARY_PATH = " + path
-        raise LoginException(str(e) + output)
+        raise LoginException(str(e))
     
     if not model.is_connected():
         raise BadUsernamePasswordException()
     
     if username in USER_NAMES:
-        if login_user(USER_NAMES[username], remember=remember):
+        user = USER_NAMES[username]
+        user.logged_in = True
+         
+        if login_user(user, remember=remember):
             return True
         else:
             raise LoginException('Sorry, but Flask-login could not log you in.')
@@ -81,6 +82,13 @@ def logout_lit_review_user():
 def get_current_user():
     return current_user
 
+def check_for_other_users(username):
+    for user in USER_NAMES.values():
+        if (not user.name.upper() == username.upper()) and user.is_alive():
+            logout_lit_review_user()
+            raise AnotherUserIsUsingException(user.name, user.last_alive)
+    
+    
 
 
 
