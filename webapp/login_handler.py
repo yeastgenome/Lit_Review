@@ -25,11 +25,11 @@ class LoginException(Exception):
     
 class NotOnListException(LoginException):
     def __init__(self):
-        super(LoginException, self).__init__('You are not allowed to use this interface. Contact sgd-programmers to add your name to the list.')
+        super(LoginException, self).__init__('You are not on the list: ' + str(USER_NAMES.keys()) + ' Contact sgd-programmers to add your name to the list.')
         
 class AnotherUserIsUsingException(LoginException):
     def __init__(self, other_user, last_alive):
-        super(LoginException, self).__init__('Sorry, ' + other_user + ' is already using this interface. ' + other_user + ' was last active at ' + str(last_alive) + '.')
+        super(LoginException, self).__init__('Sorry, ' + other_user + ' is already using this interface. This user was last active at ' + last_alive.strftime("%I:%M%p"))
         
 class BadUsernamePasswordException(LoginException):
     def __init__(self):
@@ -64,6 +64,7 @@ def login_lit_review_user(username, password, model, remember):
             raise LoginException('Sorry, but Flask-login could not log you in.')
     else:
         raise NotOnListException()
+    
 
 @login_manager.user_loader
 def load_lit_review_user(user_id):

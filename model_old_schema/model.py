@@ -83,6 +83,5 @@ def count(model, session=None, **kwargs):
     
     return f if session is None else f(session)
 
-
     
     

@@ -54,8 +54,8 @@
 	     	{{sub_form.high_priority_comment(id=pmid~'_high_priority_comment', style="width:100%", rows="3")}}
 	     </div></ul>
 	     
-	     {{sub_form.delay_cb(id=pmid~'_delay_cb', onclick="show_hide_comment('"~pmid~"_delay')")}} {{sub_form.delay_cb.label.text }} <br>
-	     <ul><div id={{pmid}}~"_delay_block" style="display:none;">
+	     {{sub_form.delay_cb(id=pmid~'_delay_cb', onclick="show_hide_comment('"~pmid~"_delay')")}} {{sub_form.delay_cb.label.text }} <br>     	
+		 <ul><div id={{pmid~"_delay_block"}} style="display:none;">
 	     	{{sub_form.delay_comment.label}}
 	     	{{sub_form.delay_comment(id=pmid~'_delay_comment', style="width:100%", rows="3")}}
 	     </div></ul>

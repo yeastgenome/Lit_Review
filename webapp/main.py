@@ -107,7 +107,7 @@ def login():
     form = LoginForm(request.form)
     try:
         if request.method == "POST" and form.validate():
-            username = form.username.data
+            username = form.username.data.lower()
             password = form.password.data
             remember = False
             

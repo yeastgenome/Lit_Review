@@ -3,8 +3,9 @@ Created on Dec 4, 2012
 
 @author: kpaskov
 '''
-from model_old_schema.model import get_first, get
+from model_old_schema.model import get_first, get, Model
 import datetime
+import string
 
 def get_feature_by_name(name, session=None):
     """
@@ -15,11 +16,19 @@ def get_feature_by_name(name, session=None):
 
     def f(session):
         feature = get_first(Feature, session, name=name.upper())
-        if feature:
+        if feature is not None:
             return feature
-        else:
-            return get_first(Feature, session, gene_name=name.upper())
-
+        
+        feature = get_first(Feature, session, gene_name=name.upper())
+        if feature is not None:
+            return feature
+        
+        feature = session.query(Feature).filter(Feature.alias_names.contains(name.upper())).first()
+        if feature is not None:
+            return feature  
+        
+        return None                              
+    
     return f if session is None else f(session)
     
 def get_reftemps(session=None):
@@ -60,6 +69,35 @@ def validate_genes(gene_names, session=None):
             return name_to_feature
         else:
             return {}
+        
+    return f if session is None else f(session)
+
+def find_genes_in_abstract(pubmed_id, session=None):
+    """
+    Convert a list of gene_names to a mapping between those gene_names and features.
+    """            
+    
+    from model_old_schema.feature import Feature
+    from model_old_schema.reference import RefTemp
+
+    def f(session):
+        word_to_feature = {}
+        features = []
+        
+        r = get_first(RefTemp, pubmed_id=pubmed_id, session=session)
+        a = str(r.abstract).lower().translate(string.maketrans("",""), string.punctuation)
+        words = a.split()
+        print words
+        
+        for word in words:
+            if not word in word_to_feature:
+                f = get_feature_by_name(word, session)
+                word_to_feature[word] = f
+                if f is not None:
+                    features.append(f)
+        print features
+        print features[0].alias_names
+        return features
         
     return f if session is None else f(session)
 
