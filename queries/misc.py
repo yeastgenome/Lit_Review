@@ -3,14 +3,14 @@ Created on Dec 4, 2012
 
 @author: kpaskov
 '''
-from model_old_schema.model import get_first, get, Model
+from model_old_schema.model import get_first, get
 import datetime
 import string
 
 def get_feature_by_name(name, session=None):
     """
     Get a feature by its name.
-    """
+    """  
     
     from model_old_schema.feature import Feature
 
@@ -77,7 +77,6 @@ def find_genes_in_abstract(pubmed_id, session=None):
     Convert a list of gene_names to a mapping between those gene_names and features.
     """            
     
-    from model_old_schema.feature import Feature
     from model_old_schema.reference import RefTemp
 
     def f(session):
@@ -95,8 +94,6 @@ def find_genes_in_abstract(pubmed_id, session=None):
                 word_to_feature[word] = f
                 if f is not None:
                     features.append(f)
-        print features
-        print features[0].alias_names
         return features
         
     return f if session is None else f(session)

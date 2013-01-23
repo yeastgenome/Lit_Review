@@ -5,29 +5,37 @@
 {% block body %}
 <html lang="en">
   <body onload="highlightSearchTerms('yeast cerevisiae');bold_citation({{ ref_count}});">
+  	
+
 
     <div class="container">
 	
       <p><p><h1>There are {{ ref_count }} new references to review</h1>
       <h2>(for testing, we only show the top 10 papers)</h2>
       <p>
-
+      	
+    <form id="del_multiple" onsubmit="return get_checked_pmids()" action="/reference/remove_multiple" method="post">
+		<input class="btn" type="submit" value="Discard Selected Papers"\>
+	</form>
       <hr>
 
       <input type="hidden" id="user" name="variable" value="{{ current_user.name.upper() }}">	  
 
       {% for row in ref_list %}
       
+      
         {% if loop.index <= 10 %}   <!-- just for testing purpose -->
 
           {% set pmid = row.pubmed_id %}
+          
        
 	      {% set sub_form = form.get_reference_form(pmid) %}
 
-          <div id='{{ pmid}}'>   <!-- start pubmed section -->
+          <div id='{{pmid}}'>   <!-- start pubmed section -->
        
-          <span id='citation{{ loop.index }}'>{{ row.citation }}</span> <br>
-
+          <input type="checkbox" value = {{pmid}} name="whole_ref_cb" id={{pmid~"_cb"}} onclick="show_hide_pmid({{pmid}})">
+          <span id='citation{{ loop.index }}'> {{ row.citation }}</span> <br>
+<ul>
           <!-- need to put this pubmed url in a config file? -->
 	  <a href='http://www.ncbi.nlm.nih.gov/pubmed/{{ pmid }}?dopt=Abstract' target='new'><img src='../static/img/pubmedrefsml.gif'></a> 
 
@@ -43,11 +51,13 @@
 	      <ul>{{ row.abstract }}</ul>
               </li>
 	  </ul>
+	  	<div id={{pmid~"_whole_form"}}>
+
 	  <form name="del_ref" action="/reference/delete/{{pmid}}" method="post">
 		<input class="btn" type="submit" value="Discard this paper"\>
 	  </form>
 
-	  <form id='form_{{pmid}}' type = "submit" onsubmit="return validate({{pmid}})" action="/reference/link/{{pmid}}" method="post" ><ul>
+	  <form id={{pmid~"_form"}} type = "submit" onsubmit="return validate({{pmid}})" action="/reference/link/{{pmid}}" method="post" ><ul>
 	     {{sub_form.high_priority_cb(id=pmid~'_high_priority_cb', onclick="show_hide_comment('"~pmid~"_high_priority')")}} {{sub_form.high_priority_cb.label.text }} <br>
 	     <ul><div id={{pmid~"_high_priority_block"}} style="display:none;">
 	     	{{sub_form.high_priority_comment.label}}
@@ -116,14 +126,18 @@
 	  	{{sub_form.link(class="btn")}}
 
 	</form>
-	  </div>  <!-- end of a pubmed section -->
+	</div>
+	  </ul></div>  <!-- end of a pubmed section -->
 
 	  <hr>
 
 
 	{% endif %}
+	
+	
 
       {% endfor %}
+     
       
     </div> <!-- /container -->
 

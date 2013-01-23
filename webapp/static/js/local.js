@@ -1,7 +1,7 @@
 /* Toggles the comment and gene entry areas to appear and disappear based upon whether or not the 
  */ 
 
-function show_hide_comment(id, show) {
+function show_hide_comment(id) {
 	checkbox = document.getElementById(id + '_cb')
 	block = document.getElementById(id + '_block')
 	comment_text = document.getElementById(id + '_comment')
@@ -14,6 +14,50 @@ function show_hide_comment(id, show) {
 	else {
 		block.style.display = 'block';
 	}
+}
+
+function show_hide_pmid(id) {
+	checkbox = document.getElementById(id + '_cb')
+	form = document.getElementById(id + '_whole_form')
+	whole = document.getElementById(id)
+	
+	if (checkbox.checked) {
+		form.style.display = 'none';
+		whole.style.color = '#999';
+	}
+	else {
+		form.style.display = 'block';
+		whole.style.color = 'black';
+	}
+}
+
+function get_checked_pmids() {
+	
+	var checkboxes = document.getElementsByName('whole_ref_cb');
+	var checkboxesChecked = [];
+  	// loop over them all
+  	for (var i=0; i<checkboxes.length; i++) {
+     	// And stick the checked ones onto an array...
+     	if (checkboxes[i].checked) {
+        	checkboxesChecked.push(checkboxes[i]);
+     	}
+  	}
+
+  	if (checkboxesChecked.length>0) {
+  		returnStr = '';
+  		//concatenate pubmed_ids
+  		for (var i=0; i<checkboxesChecked.length; i++) {
+     		returnStr = returnStr + checkboxesChecked[i].value + "_";
+  		}
+  		
+  		document.getElementById('del_multiple').action = '/reference/remove_multiple/' + returnStr;
+		return true;
+  	}
+	else {
+  		document.getElementById("validation_error").innerHTML = "You haven't selected any references.";
+  		document.getElementById("validation_error").style.display = 'block';
+		return false;
+  }
 }
 
 function validate(pmid) {

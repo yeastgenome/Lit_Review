@@ -14,7 +14,7 @@ import sys
 import traceback
 
 # imports of model classes from model.feature, model.taxonomy, etc are done as needed, since these imports are
-# not available until AFTER the metadata is bound to the engine.
+# not available until AFTER the metadata is bound to the engine.  
 
 class DBConnectionLostException(Exception):
     def __init__(self):

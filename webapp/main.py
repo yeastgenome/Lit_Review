@@ -65,6 +65,28 @@ def reference():
                            ref_list=refs,
                            ref_count=num_of_refs, 
                            form=form)     
+    
+@app.route("/reference/remove_multiple/<pmids>", methods=['GET', 'POST'])
+@login_required
+def remove_multiple(pmids):
+    try:
+        check_for_other_users(current_user.name)
+        if request.method == "POST":
+            to_be_removed = pmids.split('_')
+            to_be_removed.remove('')
+
+            for pmid in to_be_removed:
+                moved = model.execute(move_reftemp_to_refbad(pmid), current_user.name, commit=True)
+                if not moved:
+                    raise MoveRefException('An error occurred when deleting the reference for pmid=" + pmid + " from the database.')
+            
+            #Reference deleted
+            flash("References for pmids= " + str(to_be_removed) + " have been removed from the database.", 'success')
+    
+    except Exception as e:
+        flash(e.message, 'error')
+        
+    return redirect(request.args.get("next") or url_for("reference")) 
 
 @app.route("/reference/delete/<pmid>", methods=['GET', 'POST'])
 @login_required
