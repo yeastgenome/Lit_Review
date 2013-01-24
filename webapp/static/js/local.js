@@ -60,6 +60,27 @@ function get_checked_pmids() {
   }
 }
 
+function extract_genes(pmid) {  	
+	$.ajax( {
+		url: "/reference/extract_genes/" + pmid,
+		data: { 
+			zipcode: 97201 
+		},
+		success: function( data ) {
+			$( "#" + pmid + "_genes_area").html(data);
+			
+			if(data != 'No genes found.') {
+				names = data.split(', ');
+				highlightStartTag = "<font style='color:blue;'>";
+    			highlightEndTag = "</font>";
+				for (var i = 0; i < names.length; i++) {
+					highlightSearchTerms(names[i], document.getElementById(pmid + "_abstract"), false, false, highlightStartTag, highlightEndTag);
+				}
+			}
+		}
+	});
+}
+
 function validate(pmid) {
 	errors = "";
 	
@@ -202,7 +223,7 @@ function doHighlight(bodyText, searchTerm, highlightStartTag, highlightEndTag) {
  * Only the "searchText" parameter is required; all other parameters
  * are optional and can be omitted.
  */
-function highlightSearchTerms(searchText, treatAsPhrase, warnOnFailure, highlightStartTag, highlightEndTag) {
+function highlightSearchTerms(searchText, highlightableArea, treatAsPhrase, warnOnFailure, highlightStartTag, highlightEndTag) {
   // if the treatAsPhrase parameter is true, then we should search for 
   // the entire phrase that was entered; otherwise, we will split the
   // search string so that each word is searched for and highlighted
@@ -213,19 +234,22 @@ function highlightSearchTerms(searchText, treatAsPhrase, warnOnFailure, highligh
     searchArray = searchText.split(" ");
   }
   
-  if (!document.body || typeof(document.body.innerHTML) == "undefined") {
-    if (warnOnFailure) {
-      alert("Sorry, for some reason the text of this page is unavailable. Searching will not work.");
-    }
-    return false;
+  if (highlightableArea == null) {
+  	if (!document.body || typeof(document.body.innerHTML) == "undefined") {
+    	if (warnOnFailure) {
+      		alert("Sorry, for some reason the text of this page is unavailable. Searching will not work.");
+   	 	}
+    	return false;
+  	}
+  	highlightableArea=document.body
   }
   
-  var bodyText = document.body.innerHTML;
+  var bodyText = highlightableArea.innerHTML;
   for (var i = 0; i < searchArray.length; i++) {
     bodyText = doHighlight(bodyText, searchArray[i], highlightStartTag, highlightEndTag);
   }
   
-  document.body.innerHTML = bodyText;
+  highlightableArea.innerHTML = bodyText;
 
   return true;
 }

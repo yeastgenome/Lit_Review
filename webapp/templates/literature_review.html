@@ -48,14 +48,22 @@
           
 	  <ul id='abstract{{ loop.index }}'>
 	      <li><b>Abstract:</b><br>
-	      <ul>{{ row.abstract }}</ul>
+	      <ul><div id={{pmid~"_abstract"}}>{{ row.abstract }}</div></ul>
               </li>
 	  </ul>
 	  	<div id={{pmid~"_whole_form"}}>
+	  	
+	  	
 
 	  <form name="del_ref" action="/reference/delete/{{pmid}}" method="post">
 		<input class="btn" type="submit" value="Discard this paper"\>
 	  </form>
+	  
+	  <div id={{pmid~"_abstract_genes"}}> 
+	     	Genes: <button class="btn btn-mini" onclick="extract_genes({{pmid}})">Auto-extract from abstract</button> 
+	     	<textarea id={{pmid~"_genes_area"}} rows="1" style="width:100%"></textarea>
+	     	
+	     </div>
 
 	  <form id={{pmid~"_form"}} type = "submit" onsubmit="return validate({{pmid}})" action="/reference/link/{{pmid}}" method="post" ><ul>
 	     {{sub_form.high_priority_cb(id=pmid~'_high_priority_cb', onclick="show_hide_comment('"~pmid~"_high_priority')")}} {{sub_form.high_priority_cb.label.text }} <br>

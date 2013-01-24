@@ -7,6 +7,13 @@ from model_old_schema.model import get_first, get
 import datetime
 import string
 
+def is_number(s):
+    try:
+        int(s)
+        return True
+    except ValueError:
+        return False
+    
 def get_feature_by_name(name, session=None):
     """
     Get a feature by its name.
@@ -15,8 +22,9 @@ def get_feature_by_name(name, session=None):
     from model_old_schema.feature import Feature
 
     def f(session):
+        
         feature = get_first(Feature, session, name=name.upper())
-        if feature is not None:
+        if feature is not None and not feature.type=='chromosome':
             return feature
         
         feature = get_first(Feature, session, gene_name=name.upper())
@@ -86,13 +94,12 @@ def find_genes_in_abstract(pubmed_id, session=None):
         r = get_first(RefTemp, pubmed_id=pubmed_id, session=session)
         a = str(r.abstract).lower().translate(string.maketrans("",""), string.punctuation)
         words = a.split()
-        print words
         
         for word in words:
-            if not word in word_to_feature:
+            if not word in word_to_feature and not is_number(word):
                 f = get_feature_by_name(word, session)
                 word_to_feature[word] = f
-                if f is not None:
+                if f is not None and not f.type == 'chromosome':
                     features.append(f)
         return features
         

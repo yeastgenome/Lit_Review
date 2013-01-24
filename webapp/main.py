@@ -12,7 +12,8 @@ from flask_login import login_required, current_user
 from model_old_schema.model import Model
 from queries.associate import link_paper, get_ref_summary, \
     check_form_validity_and_convert_to_tasks
-from queries.misc import get_reftemps, get_recent_history
+from queries.misc import get_reftemps, get_recent_history, \
+    find_genes_in_abstract
 from queries.move_ref import move_reftemp_to_refbad, MoveRefException
 from webapp.config import SECRET_KEY, HOST, PORT
 from webapp.forms import LoginForm, ManyReferenceForms
@@ -87,6 +88,27 @@ def remove_multiple(pmids):
         flash(e.message, 'error')
         
     return redirect(request.args.get("next") or url_for("reference")) 
+
+@app.route("/reference/extract_genes/<pmid>", methods=['GET'])
+def extract_genes(pmid):
+    try:
+        check_for_other_users(current_user.name)
+        features = model.execute(find_genes_in_abstract(pmid), current_user.name)
+        names = []
+        for feature in features:
+            if feature.gene_name is not None:
+                names.append(feature.gene_name)
+            else:
+                names.append(feature.name)
+        if len(names) > 0:
+            return str(", ".join(names))
+        else:
+            return 'No genes found.'
+    except Exception as e:
+        flash(e.message, 'error')
+    return 'Test string'
+    
+    
 
 @app.route("/reference/delete/<pmid>", methods=['GET', 'POST'])
 @login_required
